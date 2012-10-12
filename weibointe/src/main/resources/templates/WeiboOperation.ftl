@@ -3,25 +3,25 @@
 <script type="text/javascript">
          function fn_weibo_post()
          {
-             //·¢ĞÂÎ¢²©
+             //å‘æ–°å¾®åš
               $.blockUI({ message: $('#weibo_post'), css: { width: '350px' } });
              
          }
          function fn_weibo_repost(weibo_id)
          {
-             //×ª·¢Î¢²©
+             //è½¬å‘å¾®åš
               $('#weibo_statusid').val(weibo_id);
               $('#weibo_operation_flag').val("repost");
               
-              $('#btn_Weibo_confirm').val("×ª·¢");
+              $('#btn_Weibo_confirm').val("è½¬å‘");
               $.blockUI({ message: $('#weibo_post'), css: { width: '350px' } });
          }
          function fn_weibo_comment(weibo_id)
          {
-             //·¢±íÆÀÂÛ
+             //å‘è¡¨è¯„è®º
               $('#weibo_statusid').val(weibo_id);
               $('#weibo_operation_flag').val("comment");
-             $('#btn_Weibo_confirm').val("ÆÀÂÛ");
+             $('#btn_Weibo_confirm').val("è¯„è®º");
               $.blockUI({ message: $('#weibo_post'), css: { width: '350px' } });
          }
 
@@ -44,8 +44,8 @@
 <#if status.id!="null">
 <tr>
     <td>
-    ·¢²¼ÈË£º${status.user.name}<br>
-    ÄÚÈİ£º  ${status.text} <a id="weibo_post_${status.id}" name="weibo_post_${status.id}" href="#" onclick="fn_weibo_repost(${status.id})">×ª·¢</a>  <a id="weibo_comment_${status.id}"  href="#" onclick="fn_weibo_comment(${status.id})">ÆÀÂÛ</a><br>
+    å‘å¸ƒäººï¼š${status.user.name}<br>
+    å†…å®¹ï¼š  ${status.text} <a id="weibo_post_${status.id}" name="weibo_post_${status.id}" href="#" onclick="fn_weibo_repost(${status.id})">è½¬å‘</a>  <a id="weibo_comment_${status.id}"  href="#" onclick="fn_weibo_comment(${status.id})">è¯„è®º</a><br>
     </td>
 <div id="div_${status.id}" style="display:none; cursor: default">
 ${status.text}
@@ -64,5 +64,5 @@ ${status.text}
     <input id="weibo_statusid" type="hidden" value=""/>
     <input id="weibo_operation_flag" type="hidden" value=""/>
     <input type="button" id="btn_Weibo_confirm" value="Yes"/>
-    <input type="button" id="btn_Weibo_cancel" value="¹Ø±Õ"/>
+    <input type="button" id="btn_Weibo_cancel" value="å…³é—­"/>
 </div>

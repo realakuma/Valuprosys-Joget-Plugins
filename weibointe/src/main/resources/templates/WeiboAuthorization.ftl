@@ -1,7 +1,7 @@
 <script type="text/javascript">
 
 $(document).ready(function(){
-//根据相关code进行授权
+//鏍规嵁鐩稿叧code杩涜鎺堟潈
   $('#btn_comfire').click(function() { 
   var v_code;
   v_code=$("#txt_code").val();
@@ -12,7 +12,7 @@ $(document).ready(function(){
 });
 </script>
 <div class="form-cell" ${elementMetaData!}>
-<a id="${elementParamName!}" name="${elementParamName!}" href="${value!}"  target="_blank">授权</a><br>
-Code:<input id="txt_code" type="text" value=""> <input id="btn_comfire" type="button" value="确认">
+<a id="${elementParamName!}" name="${elementParamName!}" href="${value!}"  target="_blank">鎺堟潈</a><br>
+Code:<input id="txt_code" type="text" value=""> <input id="btn_comfire" type="button" value="纭">
 
 </div>

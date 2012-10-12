@@ -35,7 +35,7 @@ import org.joget.commons.util.LogUtil;
  */
 public class WeiboOperation extends Element implements FormBuilderPaletteElement, PluginWebSupport {
 
-    private String AU_ERROR="微博授权期限已过，请运行相关流程重新授权";
+    private String AU_ERROR="寰崥鎺堟潈鏈熼檺宸茶繃锛岃杩愯鐩稿叧娴佺▼閲嶆柊鎺堟潈";
     public String getClassName() {
         return getClass().getName();
     }
@@ -117,7 +117,7 @@ public class WeiboOperation extends Element implements FormBuilderPaletteElement
             html = FormUtil.generateElementHtml(this, formData, template, dataModel);
         } catch (WeiboException ex) {
             
-            if (ex.getErrorCode()==21332) //过期
+            if (ex.getErrorCode()==21332) //杩囨湡
             {
              dataModel.put("error", AU_ERROR);
             }
