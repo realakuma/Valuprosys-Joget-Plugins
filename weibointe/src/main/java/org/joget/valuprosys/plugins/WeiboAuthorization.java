@@ -31,7 +31,8 @@ import org.joget.plugin.base.PluginWebSupport;
  */
 public class WeiboAuthorization extends Element implements FormBuilderPaletteElement,PluginWebSupport{
 
-    
+    String str_Authorization="授权";
+    String str_Confirm="确认";
     public String getClassName() {
         return getClass().getName();
     }
@@ -93,6 +94,8 @@ public class WeiboAuthorization extends Element implements FormBuilderPaletteEle
         try{
 	String value=oauth.authorize("code");
         dataModel.put("value", value);
+        dataModel.put("Weibo_Authorization", str_Authorization);
+         dataModel.put("Weibo_confirm", str_Confirm);
         html= FormUtil.generateElementHtml(this, formData, template, dataModel);
         }
         catch(WeiboException ex)
