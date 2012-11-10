@@ -1,0 +1,23 @@
+[{
+    title : 'edit link ',
+    properties : [{
+        name : 'id',
+        label : 'ID',
+        type : 'textfield',
+        required : 'True',
+        regex_validation : '^[a-zA-Z0-9_]+$',
+        validation_message : '@@form.textfield.invalidId@@'
+    },
+    {
+        name : 'url',
+        label : 'Hyperlink',
+        required : 'True',
+        type : 'textfield',
+    },
+    {
+        name : 'label',
+        label : 'Label',
+        required : 'True',
+        type : 'textfield',
+     }]
+}]

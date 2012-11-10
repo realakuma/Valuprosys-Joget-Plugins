@@ -76,7 +76,7 @@ public class WeiboSubmit extends DefaultApplicationPlugin {
         
 		Weibo weibo = new Weibo();
 		weibo.setToken(access_token);
-        //·¢Î¢²©
+        //å‘å¾®åš
         if (str_weibo_content[1].trim().equals(""))
         {
         	
@@ -86,7 +86,7 @@ public class WeiboSubmit extends DefaultApplicationPlugin {
 			e.printStackTrace();
 		}    
         }
-        //×ª·¢Î¢²©
+        //è½¬å‘å¾®åš
         if (str_weibo_content[1].trim().equals("repost"))
         {
       		try {
@@ -95,7 +95,7 @@ public class WeiboSubmit extends DefaultApplicationPlugin {
 			e.printStackTrace();
 		} 
         }
-        //ÆÀÂÛÎ¢²©
+        //è¯„è®ºå¾®åš
         if (str_weibo_content[1].trim().equals("comment"))
         {
       		try {
@@ -108,7 +108,7 @@ public class WeiboSubmit extends DefaultApplicationPlugin {
         }
 		
         /*
-        //Set the updated fields and it’s value to the loaded data
+        //Set the updated fields and itæŠ¯ value to the loaded data
         for (Object o : fields) {
             Map mapping = (HashMap) o;
             String fieldName = mapping.get("field").toString();
