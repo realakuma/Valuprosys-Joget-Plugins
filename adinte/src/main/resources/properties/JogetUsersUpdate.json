@@ -1,0 +1,29 @@
+[{
+    title : '@@adjoget.config@@',
+    properties : [{
+        name : 'security_principal',
+        label : '@@adjoget.aduser@@',
+        type : 'textfield',
+        required : 'True'
+    },
+    {
+        name : 'security_credentials',
+        label : '@@adjoget.aduserpwd@@',
+        type : 'password',
+        required : 'True'
+    },
+
+    {
+        name : 'ldap_url',
+        label : '@@adjoget.adurl@@',
+        type : 'textfield',
+        required : 'True'
+    },
+    {
+        name : 'search_base',
+        label : '@@adjoget.searchbase@@',
+        type : 'textfield',
+        required : 'True'
+    }]
+}
+]

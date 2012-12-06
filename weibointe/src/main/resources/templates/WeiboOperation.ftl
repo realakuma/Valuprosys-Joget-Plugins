@@ -44,7 +44,11 @@
 <#if status.id!="null">
 <tr>
     <td>
-    ${sender}:${status.user.name}<br>
+    ${sender}:
+<#if status.user.profileImageUrl!="">
+<image src="${status.user.profileImageUrl}"/>
+</#if>
+${status.user.name}<br>
     ${content}:${status.text}
     </td>
 </tr>    
