@@ -13,7 +13,6 @@ import org.joget.directory.model.service.DirectoryManager;
 import org.joget.plugin.base.PluginManager;
 import java.util.ArrayList;
 import org.joget.directory.model.User;
-import org.joget.directory.model.Role;
 import org.joget.directory.dao.RoleDao;
 import org.joget.directory.dao.UserDao;
 /**
@@ -77,7 +76,7 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
     }
 
     public String getLabel() {
-        return "Weibo Submit Tool";
+        return "Joget Active Directory Synchronize Tool";
     }
 
     public String getClassName() {
