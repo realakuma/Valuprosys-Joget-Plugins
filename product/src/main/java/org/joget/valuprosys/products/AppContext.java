@@ -5,7 +5,7 @@
 package org.joget.valuprosys.products;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.joget.apps.app.service.AppUtil;
 
 /**
  *
@@ -25,7 +25,15 @@ public class AppContext {
 
  private AppContext() {
   System.out.print(this.getClass().getResource("/"));
-  this.appContext = new ClassPathXmlApplicationContext("productsApplicationContext.xml");
+  //this.appContext = new ClassPathXmlApplicationContext("productsApplicationContext.xml");
+  Thread currentThread = Thread.currentThread();
+ClassLoader threadContextClassLoader = currentThread.getContextClassLoader();
+try {
+    currentThread.setContextClassLoader(this.getClass().getClassLoader());
+    this.appContext = new ClassPathXmlApplicationContext(new String[]{"/productsApplicationContext.xml"}, this.getClass(), AppUtil.getApplicationContext());
+} finally {
+    currentThread.setContextClassLoader(threadContextClassLoader);
+}
  }
 
  public AbstractApplicationContext getAppContext() {
