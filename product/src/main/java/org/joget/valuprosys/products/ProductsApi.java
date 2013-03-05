@@ -21,8 +21,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import javax.sql.DataSource;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.joget.valuprosys.products.model.Products;
-import org.joget.valuprosys.products.AppContext;
+
 
 /**
  *
@@ -38,10 +39,11 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
     @Override
     public void webService(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        String operation = request.getParameter("operation");
-        String id = request.getParameter("id");
-        String name = request.getParameter("name");
-        String description = request.getParameter("description");
+        String operation = StringUtils.defaultIfEmpty(request.getParameter("operation"));
+        String id = StringUtils.defaultIfEmpty(request.getParameter("id"));
+        String name = StringUtils.defaultIfEmpty(request.getParameter("name"));
+        String description = StringUtils.defaultIfEmpty(request.getParameter("description"));
+        String callback = StringUtils.defaultIfEmpty(request.getParameter("callback"));
         String result = "";
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "no-cache");
@@ -58,7 +60,7 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
                 product.setName(name);
                 product.setDescription(description);
                 addProduct(product);
-                result = "add product successed";
+                result = "[{\"INFO\":\"add product successed\"}]";
             }
             if (operation.equals("update")) {
                 Products product = new Products();
@@ -66,13 +68,13 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
                 product.setName(name);
                 product.setDescription(description);
                 updateProduct(product);
-                result = "update product successed";
+                result = "[{\"INFO\":\"update product successed\"}]";
             }
             if (operation.equals("delete")) {
                 Products product = new Products();
                 product.setId(id);
                 deleteProduct(product);
-                result = "update product successed";
+                result = "[{\"INFO\":\"delete product successed\"}]";
             }
 
             if (operation.equals("query")) {
@@ -98,15 +100,20 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
                     }
                 }
             }
-            response.getWriter().write(result);
+            if (callback != null && !callback.equals(""))
+            {
+                response.getWriter().write(callback + "("+result+")");
+            } else {
+                response.getWriter().write(result);
+            }
         } catch (Exception e) {
-            System.err.println("Exception: " + e.getMessage());
+            System.err.println("[{\"Exception\":" + "\"" + e.getMessage() + "\"}]");
         }
     }
 
     @Override
     public Object execute(Map props) {
-     
+
         return null;
 
     }
@@ -157,11 +164,11 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
         ResultSet rs = null;
         PreparedStatement preStat = null;
 
-        if (id != null) {
+        if (id != null && !id.equals("")) {
             sql += " AND id='" + id + "'";
         }
 
-        if (name != null) {
+        if (name != null && !name.equals("")) {
             sql += " AND name='" + name + "'";
         }
 
