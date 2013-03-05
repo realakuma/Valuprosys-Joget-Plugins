@@ -33,14 +33,4 @@ public class StringUtils {
 	public static String defaultIfEmpty(String str) {
 		return defaultIfEmpty(str,"");
 	}
-
-    public static void writeJson(Writer writer, JSONObject jsonObject, String callback) throws IOException, JSONException {
-        if (callback != null && callback.trim().length() > 0) {
-            writer.write(StringEscapeUtils.escapeHtml(callback) + "(");
-        }
-        jsonObject.write(writer);
-        if (callback != null && callback.trim().length() > 0) {
-            writer.write(")");
-        }
- }
 }

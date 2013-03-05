@@ -1,9 +1,6 @@
 package org.joget.valuprosys.products.dao;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.joget.commons.spring.model.AbstractSpringDao;
 import org.joget.commons.util.LogUtil;
 import org.joget.valuprosys.products.model.Products;

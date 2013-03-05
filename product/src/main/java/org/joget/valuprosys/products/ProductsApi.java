@@ -5,16 +5,11 @@
 package org.joget.valuprosys.products;
 
 import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
 import java.sql.*;
 import org.joget.apps.app.service.AppUtil;
-import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
-import org.joget.directory.model.service.DirectoryManager;
 import org.joget.plugin.base.PluginManager;
 import org.joget.plugin.base.PluginWebSupport;
-import java.util.ArrayList;
 import org.joget.valuprosys.products.dao.ProductsDao;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -102,7 +97,7 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
             }
             if (callback != null && !callback.equals(""))
             {
-                response.getWriter().write(callback + "("+result+")");
+                response.getWriter().write(StringEscapeUtils.escapeHtml(callback) + "("+result+")");
             } else {
                 response.getWriter().write(result);
             }
