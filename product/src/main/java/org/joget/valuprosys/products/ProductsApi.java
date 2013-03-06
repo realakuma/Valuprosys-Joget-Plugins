@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.joget.valuprosys.products.model.Products;
 
-
 /**
  *
  * @author realakuma
@@ -49,27 +48,41 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
 
         try {
             productdao = (ProductsDao) AppContext.getInstance().getAppContext().getBean("productsDao");
+            boolean executed=false;
             if (operation.equals("insert")) {
                 Products product = new Products();
                 product.setId(id);
                 product.setName(name);
                 product.setDescription(description);
-                addProduct(product);
-                result = "[{\"INFO\":\"add product successed\"}]";
+                if (addProduct(product)) {
+                    result = "[{\"INFO\":\"add product successed\"}]";
+                } else {
+                    result = "[{\"INFO\":\"add product error\"}]";
+                }
             }
             if (operation.equals("update")) {
                 Products product = new Products();
                 product.setId(id);
                 product.setName(name);
                 product.setDescription(description);
-                updateProduct(product);
-                result = "[{\"INFO\":\"update product successed\"}]";
+                if (updateProduct(product)){
+                    result = "[{\"INFO\":\"update product successed\"}]";
+                }else
+                {
+                    result = "[{\"INFO\":\"update product error\"}]";
+                }
+                
             }
             if (operation.equals("delete")) {
                 Products product = new Products();
                 product.setId(id);
-                deleteProduct(product);
+                if (deleteProduct(product)){;
                 result = "[{\"INFO\":\"delete product successed\"}]";
+                }
+                else
+                {
+                    result = "[{\"INFO\":\"delete product error\"}]";
+                }
             }
 
             if (operation.equals("query")) {
@@ -95,9 +108,8 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
                     }
                 }
             }
-            if (callback != null && !callback.equals(""))
-            {
-                response.getWriter().write(StringEscapeUtils.escapeHtml(callback) + "("+result+")");
+            if (callback != null && !callback.equals("")) {
+                response.getWriter().write(StringEscapeUtils.escapeHtml(callback) + "(" + result + ")");
             } else {
                 response.getWriter().write(result);
             }
@@ -138,19 +150,15 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
     }
 
     protected boolean addProduct(Products product) {
-
-        productdao.addProducts(product);
-        return true;
+        return productdao.addProducts(product);
     }
 
     protected boolean updateProduct(Products product) {
-        productdao.updateProducts(product);
-        return true;
+        return productdao.updateProducts(product);
     }
 
     protected boolean deleteProduct(Products product) {
-        productdao.deleteProducts(product.getId());
-        return true;
+        return productdao.deleteProducts(product.getId());
     }
 
     protected String getProductsByCondtion(String id, String name, Connection conn) {
