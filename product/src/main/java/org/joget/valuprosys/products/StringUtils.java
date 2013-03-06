@@ -3,11 +3,6 @@
  * and open the template in the editor.
  */
 package org.joget.valuprosys.products;
-import org.json.JSONObject;
-import org.apache.commons.lang.StringEscapeUtils;
-import java.io.Writer;
-import java.io.IOException;
-import org.json.JSONException;
 
 /**
  *
