@@ -163,7 +163,7 @@ public class ProductsApi extends DefaultApplicationPlugin implements PluginWebSu
 
     protected String getProductsByCondtion(String id, String name, Connection conn) {
         String result = "";
-        String sql = "select id,name,description from valu_products where 1=1";
+        String sql = "select id,c_name,c_description from app_fd_products where 1=1";
         ResultSet rs = null;
         PreparedStatement preStat = null;
 
