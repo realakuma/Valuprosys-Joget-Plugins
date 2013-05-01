@@ -98,6 +98,7 @@ public class mobileApi extends DefaultApplicationPlugin
 
         Collection <WorkflowVariable> variableList = workflowManager.getProcessVariableList(processId);
         
+        //setting the workflow variables
         for (WorkflowVariable variable : variableList) {
           String fina_status = "";
           String[] strarray = variable.getVal().toString().split(";");
@@ -106,6 +107,9 @@ public class mobileApi extends DefaultApplicationPlugin
           }
           map.put(variable.getId(), fina_status);
         }
+        
+        //setting current approver
+        map.put(formDefId+MobileConst.Approver, workflowManager.getWorkflowUserManager().getCurrentUsername());
 
         if (dataType.equals("all")) {
           result = "{\"meta\":[" + formService.generateElementJson(form) + "]," + "\"data\":[" + JsonUtil.generatePropertyJsonObject(map).toString() + "]}";
