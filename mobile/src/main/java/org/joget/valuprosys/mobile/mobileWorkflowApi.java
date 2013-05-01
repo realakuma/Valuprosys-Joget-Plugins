@@ -6,6 +6,7 @@ package org.joget.valuprosys.mobile;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -157,7 +158,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             if (Operation.equals(MobileConst.GetApprovementHistoryList)) {
                 List<String> userList = new ArrayList<String>();
                 Collection<WorkflowActivity> activityList = workflowManager.getActivityList(processId, null, null, null, null);
-
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
                 Integer total=0;
                 JSONObject jsonObject = new JSONObject();
                 for (WorkflowActivity workflowActivity : activityList) {
@@ -182,8 +183,8 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                         data.put("id", workflowActivity.getId());
                         data.put("name", workflowActivity.getName());
                         data.put("state", workflowActivity.getState());
-                        data.put("dateCreated", workflowActivity.getCreatedTime());
-                        data.put("dateCompleted", activityInfo.getFinishTime());
+                        data.put("dateCreated", dateFormat.format(workflowActivity.getCreatedTime()));
+                        data.put("dateCompleted",  dateFormat.format(activityInfo.getFinishTime()));
                         data.put("serviceLevelMonitor", WorkflowUtil.getServiceLevelIndicator(serviceLevelMonitor));
 
                         Iterator<Map.Entry<String, String>> it = approveInfo.entrySet().iterator();
@@ -191,7 +192,15 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                             //output approvment INFO
                             Map.Entry<String, String> entry = it.next();
                             if (entry.getKey().toString().indexOf(formDefId)!=-1) {
-                                data.put(entry.getKey(), entry.getValue());
+                                if (entry.getKey().toString().equals(formDefId+MobileConst.Approver))
+                                {
+                                    data.put("Assignee", entry.getValue());
+                                }
+                                 if (entry.getKey().toString().equals(formDefId+MobileConst.Comment))
+                                {
+                                    data.put("Comment", entry.getValue());
+                                }
+                            
                             }
                         }
 
