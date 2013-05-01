@@ -15,6 +15,7 @@ public class Activator implements BundleActivator {
 
         //Register plugin here
         registrationList.add(context.registerService(mobileApi.class.getName(), new mobileApi(), null));
+        registrationList.add(context.registerService(mobileWorkflowApi.class.getName(), new mobileWorkflowApi(), null));
     }
 
     public void stop(BundleContext context) {
