@@ -157,7 +157,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
             if (Operation.equals(MobileConst.GetApprovementHistoryList)) {
                 List<String> userList = new ArrayList<String>();
-                Collection<WorkflowActivity> activityList = workflowManager.getActivityList(processId, null, null, null, null);
+                Collection<WorkflowActivity> activityList = workflowManager.getActivityList(processId, null, MobileConst.getrows, null, null);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
                 Integer total=0;
                 JSONObject jsonObject = new JSONObject();
