@@ -27,10 +27,14 @@ import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormService;
 import org.joget.commons.util.LogUtil;
+import org.joget.commons.util.PagedList;
+import org.joget.commons.util.TimeZoneUtil;
+import org.joget.directory.model.User;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.plugin.base.PluginWebSupport;
 import org.joget.workflow.model.WorkflowActivity;
 import org.joget.workflow.model.WorkflowAssignment;
+import org.joget.workflow.model.WorkflowProcess;
 import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.workflow.model.service.WorkflowUserManager;
 import org.joget.workflow.util.WorkflowUtil;
@@ -54,14 +58,12 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
     @Override
     public void webService(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        String formDefId = "test_1";
 
         String processId = StringUtils.defaultIfEmpty(request.getParameter("processId"));
         String activityId = StringUtils.defaultIfEmpty(request.getParameter("activityId"));
         String Operation = StringUtils.defaultIfEmpty(request.getParameter("Operation"));
-        String loginAs = StringUtils.defaultIfEmpty(request.getParameter("loginAs"));
-
         String callback = StringUtils.defaultIfEmpty(request.getParameter("callback"));
+        String listType=StringUtils.defaultIfEmpty(request.getParameter("listType"));
         String result = "";
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "no-cache");
@@ -77,161 +79,17 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             //Service bean
             AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
             WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
-            WorkflowUserManager userManager = (WorkflowUserManager) AppUtil.getApplicationContext().getBean("workflowUserManager");
 
 
             if (Operation.equals(MobileConst.CompleteWithVariable)) {
-
-
-
-
-                WorkflowAssignment assignment = workflowManager.getAssignment(activityId);
-
-
-                //Setting Approve INFO
-                if (assignment != null) {
-                    String processDefId = assignment.getProcessDefId();
-                    String activityDefId = assignment.getActivityDefId();
-                    AppDefinition appDef = appService.getAppDefinitionForWorkflowProcess(processId);
-                    PackageActivityForm activityForm = appService.retrieveMappedForm(appDef.getAppId(), appDef.getVersion().toString(), processDefId, activityDefId);
-
-                    if (activityForm != null) {
-                        formDefId = activityForm.getFormId();
-
-                        String id = appService.getOriginProcessId(processId);
-
-                        FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
-
-                        FormRow row = null;
-
-                        Map<String, String> workflowApproveINFO = MobileUtil.retrieveApproveINFOFromRequest(request, formDefId);
-
-
-                        if (rowSet != null && !rowSet.isEmpty()) {
-                            row = rowSet.get(0);
-
-                            Iterator<Map.Entry<String, String>> it = workflowApproveINFO.entrySet().iterator();
-                            while (it.hasNext()) {
-                                //Setting approvment INFO
-                                Map.Entry<String, String> entry = it.next();
-                                row.setProperty(entry.getKey(), entry.getValue());
-                            }
-                            // save to form
-                            appService.storeFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, rowSet, id);
-                        }
-                    }
-                }
-
-
-                //CompleteActivityWithVariables
-                appService.getAppDefinitionForWorkflowActivity(activityId);
-
-                if (assignment != null && !assignment.isAccepted()) {
-                    workflowManager.assignmentAccept(activityId);
-                }
-
-                Map<String, String> workflowVariableMap = AppUtil.retrieveVariableDataFromRequest(request);
-                workflowManager.assignmentComplete(activityId, workflowVariableMap);
-
-                LogUtil.info(getClass().getName(), "Assignment " + activityId + " completed");
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.accumulate("assignment", assignment.getAssigneeId());
-                jsonObject.accumulate("status", "completed");
-                jsonObject.accumulate("processId", processId);
-                jsonObject.accumulate("activityId", activityId);
-
-                // check for automatic continuation
-                String processDefId = assignment.getProcessDefId();
-                String activityDefId = assignment.getActivityDefId();
-                String packageId = WorkflowUtil.getProcessDefPackageId(processDefId);
-                String packageVersion = WorkflowUtil.getProcessDefVersion(processDefId);
-                boolean continueNextAssignment = appService.isActivityAutoContinue(packageId, packageVersion, processDefId, activityDefId);
-                if (continueNextAssignment) {
-                    WorkflowAssignment nextAssignment = workflowManager.getAssignmentByProcess(processId);
-                    if (nextAssignment != null) {
-                        jsonObject.accumulate("nextActivityId", nextAssignment.getActivityId());
-                    }
-                }
-                result = jsonObject.toString();
+                result = completeWithVariable(request, activityId, appService, workflowManager);
             }
 
             if (Operation.equals(MobileConst.GetApprovementHistoryList)) {
-                List<String> userList = new ArrayList<String>();
-                Collection<WorkflowActivity> activityList = workflowManager.getActivityList(processId, null, MobileConst.getrows, null, null);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-                Integer total=0;
-                JSONObject jsonObject = new JSONObject();
-                for (WorkflowActivity workflowActivity : activityList) {
-                    WorkflowActivity activityInfo = workflowManager.getRunningActivityInfo(workflowActivity.getId());
-                    //userList = workflowManager.getAssignmentResourceIds(workflowActivity.getProcessDefId(), workflowActivity.getProcessId(), workflowActivity.getId());
-                    if (activityInfo.getNameOfAcceptedUser() != null) {
-                        //Get Form Data with ActivityId
-                        AppDefinition appDef = appService.getAppDefinitionForWorkflowProcess(workflowActivity.getProcessId());
-                        String id = appService.getOriginProcessId(workflowActivity.getProcessId());
-                        PackageActivityForm activityForm = appService.retrieveMappedForm(appDef.getAppId(), appDef.getVersion().toString(), workflowActivity.getProcessDefId(), workflowActivity.getActivityDefId());
-                        formDefId = activityForm.getFormId();
-                        FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
-                        FormRow row = null;
-                        if (rowSet != null && !rowSet.isEmpty()) {
-                            row = rowSet.get(0);
-                        }
-                        double serviceLevelMonitor = workflowManager.getServiceLevelMonitorForRunningActivity(workflowActivity.getId());
-
-                        Map approveInfo = new HashMap(row);
-                        Map data = new HashMap();
-
-                        data.put("id", workflowActivity.getId());
-                        data.put("name", workflowActivity.getName());
-                        data.put("state", workflowActivity.getState());
-                        data.put("dateCreated", dateFormat.format(workflowActivity.getCreatedTime()));
-                        data.put("dateCompleted",  dateFormat.format(activityInfo.getFinishTime()));
-                        data.put("serviceLevelMonitor", WorkflowUtil.getServiceLevelIndicator(serviceLevelMonitor));
-
-                        Iterator<Map.Entry<String, String>> it = approveInfo.entrySet().iterator();
-                        while (it.hasNext()) {
-                            //output approvment INFO
-                            Map.Entry<String, String> entry = it.next();
-                            if (entry.getKey().toString().indexOf(formDefId)!=-1) {
-                                if (entry.getKey().toString().equals(formDefId+MobileConst.Approver))
-                                {
-                                    data.put("Assignee", entry.getValue());
-                                }
-                                 if (entry.getKey().toString().equals(formDefId+MobileConst.Comment))
-                                {
-                                    data.put("Comment", entry.getValue());
-                                }
-                            
-                            }
-                        }
-
-                        jsonObject.accumulate("data", data);
-                        total++;
-                    }
-                }
-
-                jsonObject.accumulate("total", total);
-                jsonObject.accumulate("start", null);
-                jsonObject.accumulate("sort", null);
-                jsonObject.accumulate("desc", null);
-                //jsonObject.write(writer);
-                result = jsonObject.toString();
+                result = getApprovmentHistoryList(processId, appService, workflowManager);
             }
-            //get form metadata
-            //paf=appService.viewAssignmentForm(appDef.getAppId(),appDef.getVersion().toString(), activityId, null, null);
-            //formDefId=paf.getFormId();
-            //FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
-            //FormRow row = null;
-            //if (rowSet != null && !rowSet.isEmpty()) {
-            //    row = rowSet.get(0);
-            //}
-            //Set <String> test=row.stringPropertyNames();
-            //Map test=row.propertyNames();
-            //formData=(Map)row;
-            //result =FormUtil.generatePropertyJsonObject((Map)rowSet).toString();
-            //result = row.toString();
-
-
-
+            if (Operation.equals(MobileConst.GetAssignmentPendingAndAcceptedList))
+                result=getAssignmentPendingAndAcceptedList(listType, appService, workflowManager);
 
             if (callback != null && !callback.equals("")) {
                 response.getWriter().write(StringEscapeUtils.escapeHtml(callback) + "(" + result + ")");
@@ -273,4 +131,198 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
     public String getPropertyOptions() {
         return AppUtil.readPluginResource(getClass().getName(), "", null, true, "");
     }
+
+    protected String getApprovmentHistoryList(String processId, AppService appService, WorkflowManager workflowManager) throws IOException, JSONException {
+
+        Collection<WorkflowActivity> activityList = workflowManager.getActivityList(processId, null, MobileConst.getrows, null, null);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        Integer total = 0;
+        JSONObject jsonObject = new JSONObject();
+        for (WorkflowActivity workflowActivity : activityList) {
+            WorkflowActivity activityInfo = workflowManager.getRunningActivityInfo(workflowActivity.getId());
+            //userList = workflowManager.getAssignmentResourceIds(workflowActivity.getProcessDefId(), workflowActivity.getProcessId(), workflowActivity.getId());
+            if (activityInfo.getNameOfAcceptedUser() != null) {
+                //Get Form Data with ActivityId
+                AppDefinition appDef = appService.getAppDefinitionForWorkflowProcess(workflowActivity.getProcessId());
+                String id = appService.getOriginProcessId(workflowActivity.getProcessId());
+                PackageActivityForm activityForm = appService.retrieveMappedForm(appDef.getAppId(), appDef.getVersion().toString(), workflowActivity.getProcessDefId(), workflowActivity.getActivityDefId());
+                String formDefId = activityForm.getFormId();
+                FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
+                FormRow row = null;
+                if (rowSet != null && !rowSet.isEmpty()) {
+                    row = rowSet.get(0);
+                }
+                double serviceLevelMonitor = workflowManager.getServiceLevelMonitorForRunningActivity(workflowActivity.getId());
+
+                Map approveInfo = new HashMap(row);
+                Map data = new HashMap();
+
+                data.put("id", workflowActivity.getId());
+                data.put("name", workflowActivity.getName());
+                data.put("state", workflowActivity.getState());
+                data.put("dateCreated", dateFormat.format(workflowActivity.getCreatedTime()));
+                data.put("dateCompleted", dateFormat.format(activityInfo.getFinishTime()));
+                data.put("serviceLevelMonitor", WorkflowUtil.getServiceLevelIndicator(serviceLevelMonitor));
+
+                Iterator<Map.Entry<String, String>> it = approveInfo.entrySet().iterator();
+                while (it.hasNext()) {
+                    //output approvment INFO
+                    Map.Entry<String, String> entry = it.next();
+                    if (entry.getKey().toString().indexOf(formDefId) != -1) {
+                        if (entry.getKey().toString().equals(formDefId + MobileConst.Approver)) {
+                            data.put("Assignee", entry.getValue());
+                        } else if (entry.getKey().toString().equals(formDefId + MobileConst.Comment)) {
+                            data.put("Comment", entry.getValue());
+                        } else {
+                            data.put("Result", entry.getValue());
+                        }
+                    }
+                }
+
+                jsonObject.accumulate("data", data);
+                total++;
+            }
+        }
+
+        jsonObject.accumulate("total", total);
+        jsonObject.accumulate("start", null);
+        jsonObject.accumulate("sort", null);
+        jsonObject.accumulate("desc", null);
+        //java.io.Writer write=response.getWriter();
+        //writeJson(write, jsonObject, callback);
+        //return;
+        return jsonObject.toString();
+    }
+
+    protected String completeWithVariable(HttpServletRequest request, String activityId, AppService appService, WorkflowManager workflowManager) throws IOException, JSONException {
+
+        WorkflowAssignment assignment = workflowManager.getAssignment(activityId);
+
+
+        //Setting Approve INFO
+        if (assignment != null) {
+            String processDefId = assignment.getProcessDefId();
+            String activityDefId = assignment.getActivityDefId();
+            String processId = assignment.getProcessId();
+            AppDefinition appDef = appService.getAppDefinitionForWorkflowProcess(processId);
+            PackageActivityForm activityForm = appService.retrieveMappedForm(appDef.getAppId(), appDef.getVersion().toString(), processDefId, activityDefId);
+
+            if (activityForm != null) {
+                String formDefId = activityForm.getFormId();
+
+                String id = appService.getOriginProcessId(processId);
+
+                FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
+
+                FormRow row = null;
+
+                Map<String, String> workflowApproveINFO = MobileUtil.retrieveApproveINFOFromRequest(request, formDefId);
+
+
+                if (rowSet != null && !rowSet.isEmpty()) {
+                    row = rowSet.get(0);
+
+                    Iterator<Map.Entry<String, String>> it = workflowApproveINFO.entrySet().iterator();
+                    while (it.hasNext()) {
+                        //Setting approvment INFO
+                        Map.Entry<String, String> entry = it.next();
+                        row.setProperty(entry.getKey(), entry.getValue());
+                    }
+                    // save to form
+                    appService.storeFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, rowSet, id);
+                }
+            }
+        }
+
+
+        //CompleteActivityWithVariables
+        appService.getAppDefinitionForWorkflowActivity(activityId);
+
+        if (assignment != null && !assignment.isAccepted()) {
+            workflowManager.assignmentAccept(activityId);
+            String processId = assignment.getProcessId();
+
+
+            Map<String, String> workflowVariableMap = AppUtil.retrieveVariableDataFromRequest(request);
+            workflowManager.assignmentComplete(activityId, workflowVariableMap);
+
+            LogUtil.info(getClass().getName(), "Assignment " + activityId + " completed");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.accumulate("assignment", assignment.getAssigneeId());
+            jsonObject.accumulate("status", "completed");
+            jsonObject.accumulate("processId", processId);
+            jsonObject.accumulate("activityId", activityId);
+
+            // check for automatic continuation
+            String processDefId = assignment.getProcessDefId();
+            String activityDefId = assignment.getActivityDefId();
+            String packageId = WorkflowUtil.getProcessDefPackageId(processDefId);
+            String packageVersion = WorkflowUtil.getProcessDefVersion(processDefId);
+            boolean continueNextAssignment = appService.isActivityAutoContinue(packageId, packageVersion, processDefId, activityDefId);
+            if (continueNextAssignment) {
+                WorkflowAssignment nextAssignment = workflowManager.getAssignmentByProcess(processId);
+                if (nextAssignment != null) {
+                    jsonObject.accumulate("nextActivityId", nextAssignment.getActivityId());
+                }
+            }
+            return jsonObject.toString();
+        }
+
+        return "assignment is null";
+
+    }
+    
+    protected String getAssignmentPendingAndAcceptedList(String listType,AppService appService, WorkflowManager workflowManager) throws JSONException, IOException {
+        PagedList<WorkflowAssignment> assignmentList=null;
+        if(listType.equals("all"))
+        {
+          assignmentList= workflowManager.getAssignmentPendingAndAcceptedList(null, null, null, null, null, null, MobileConst.getrows);
+
+        }
+        if(listType.equals("pending"))
+        {
+             assignmentList= workflowManager.getAssignmentPendingList(null, null,  null, null, MobileConst.getrows);
+
+        }
+          if(listType.equals("accepted"))
+        {
+             assignmentList= workflowManager.getAssignmentAcceptedList(null, null, null, null, MobileConst.getrows);
+
+        }
+        
+       Integer total = assignmentList.getTotal();
+        JSONObject jsonObject = new JSONObject();
+
+        for (WorkflowAssignment assignment : assignmentList) {
+           
+              WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
+            Map data = new HashMap();
+            data.put("processId", assignment.getProcessId());
+            data.put("activityId", assignment.getActivityId());
+            data.put("processName", assignment.getProcessName());
+            data.put("activityName", assignment.getActivityName());
+            data.put("processVersion", assignment.getProcessVersion());
+            data.put("requestor", workflowProcess.getRequesterId());
+            data.put("dateCreated",assignment.getDateCreated());
+            data.put("acceptedStatus", assignment.isAccepted());
+            data.put("due", assignment.getDueDate() != null ? assignment.getDueDate(): "-");
+
+            double serviceLevelMonitor = workflowManager.getServiceLevelMonitorForRunningActivity(assignment.getActivityId());
+
+            data.put("serviceLevelMonitor", WorkflowUtil.getServiceLevelIndicator(serviceLevelMonitor));
+
+            data.put("id", assignment.getActivityId());
+            data.put("label", assignment.getActivityName());
+            data.put("description", assignment.getDescription());
+
+            jsonObject.accumulate("data", data);
+        }
+
+        jsonObject.accumulate("total", total);
+        jsonObject.accumulate("start", "");
+        jsonObject.accumulate("sort", "");
+        jsonObject.accumulate("desc", "");
+        return jsonObject.toString();
+    }
+
 }

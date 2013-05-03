@@ -14,6 +14,7 @@ public class MobileConst {
     public static String Comment="_comment";
     public static String CompleteWithVariable="completeWithVariable";
     public static String GetApprovementHistoryList="getApprovementHistoryList";
+    public static String GetAssignmentPendingAndAcceptedList="getAssignmentPendingAndAcceptedList";
     public static int getrows=100;
     
     
