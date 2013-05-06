@@ -21,11 +21,13 @@ import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.PackageActivityForm;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
+import org.joget.apps.form.model.Element;
 import org.joget.apps.form.model.Form;
 import org.joget.apps.form.model.FormData;
 import org.joget.apps.form.model.FormRow;
 import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormService;
+import org.joget.apps.form.service.FormUtil;
 import org.joget.commons.util.LogUtil;
 import org.joget.commons.util.PagedList;
 import org.joget.commons.util.TimeZoneUtil;
@@ -63,7 +65,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
         String activityId = StringUtils.defaultIfEmpty(request.getParameter("activityId"));
         String Operation = StringUtils.defaultIfEmpty(request.getParameter("Operation"));
         String callback = StringUtils.defaultIfEmpty(request.getParameter("callback"));
-        String listType=StringUtils.defaultIfEmpty(request.getParameter("listType"));
+        String listType = StringUtils.defaultIfEmpty(request.getParameter("listType"));
         String result = "";
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "no-cache");
@@ -79,6 +81,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             //Service bean
             AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
             WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
+            FormService formService;
 
 
             if (Operation.equals(MobileConst.CompleteWithVariable)) {
@@ -88,8 +91,9 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             if (Operation.equals(MobileConst.GetApprovementHistoryList)) {
                 result = getApprovmentHistoryList(processId, appService, workflowManager);
             }
-            if (Operation.equals(MobileConst.GetAssignmentPendingAndAcceptedList))
-                result=getAssignmentPendingAndAcceptedList(listType, appService, workflowManager);
+            if (Operation.equals(MobileConst.GetAssignmentPendingAndAcceptedList)) {
+                result = getAssignmentPendingAndAcceptedList(listType, appService, workflowManager);
+            }
 
             if (callback != null && !callback.equals("")) {
                 response.getWriter().write(StringEscapeUtils.escapeHtml(callback) + "(" + result + ")");
@@ -147,6 +151,11 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                 String id = appService.getOriginProcessId(workflowActivity.getProcessId());
                 PackageActivityForm activityForm = appService.retrieveMappedForm(appDef.getAppId(), appDef.getVersion().toString(), workflowActivity.getProcessDefId(), workflowActivity.getActivityDefId());
                 String formDefId = activityForm.getFormId();
+                FormData formData = new FormData();
+                String primaryKey = appService.getOriginProcessId(workflowActivity.getProcessId());
+                formData.setPrimaryKeyValue(primaryKey);
+                Form loadForm = appService.viewDataForm(appDef.getId(), appDef.getVersion().toString(), formDefId, null, null, null, formData, null, null);
+
                 FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
                 FormRow row = null;
                 if (rowSet != null && !rowSet.isEmpty()) {
@@ -174,7 +183,18 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                         } else if (entry.getKey().toString().equals(formDefId + MobileConst.Comment)) {
                             data.put("Comment", entry.getValue());
                         } else {
-                            data.put("Result", entry.getValue());
+                            //get the label with value
+                            // find the selectbox
+                            Element selectbox = FormUtil.findElement(entry.getKey().toString(), loadForm, formData);
+                            // get options
+                            FormRowSet tmp_rowset = (FormRowSet) selectbox.getProperty("options");
+                            for (FormRow tmp_row : tmp_rowset) {
+                                if (entry.getValue().equals(tmp_row.getProperty("value"))) {
+                                    data.put("Result", tmp_row.getProperty("label"));
+
+                                }
+                            }
+
                         }
                     }
                 }
@@ -271,31 +291,28 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
         return "assignment is null";
 
     }
-    
-    protected String getAssignmentPendingAndAcceptedList(String listType,AppService appService, WorkflowManager workflowManager) throws JSONException, IOException {
-        PagedList<WorkflowAssignment> assignmentList=null;
-        if(listType.equals("all"))
-        {
-          assignmentList= workflowManager.getAssignmentPendingAndAcceptedList(null, null, null, null, null, null, MobileConst.getrows);
+
+    protected String getAssignmentPendingAndAcceptedList(String listType, AppService appService, WorkflowManager workflowManager) throws JSONException, IOException {
+        PagedList<WorkflowAssignment> assignmentList = null;
+        if (listType.equals("all")) {
+            assignmentList = workflowManager.getAssignmentPendingAndAcceptedList(null, null, null, null, null, null, MobileConst.getrows);
 
         }
-        if(listType.equals("pending"))
-        {
-             assignmentList= workflowManager.getAssignmentPendingList(null, null,  null, null, MobileConst.getrows);
+        if (listType.equals("pending")) {
+            assignmentList = workflowManager.getAssignmentPendingList(null, null, null, null, MobileConst.getrows);
 
         }
-          if(listType.equals("accepted"))
-        {
-             assignmentList= workflowManager.getAssignmentAcceptedList(null, null, null, null, MobileConst.getrows);
+        if (listType.equals("accepted")) {
+            assignmentList = workflowManager.getAssignmentAcceptedList(null, null, null, null, MobileConst.getrows);
 
         }
-        
-       Integer total = assignmentList.getTotal();
+
+        Integer total = assignmentList.getTotal();
         JSONObject jsonObject = new JSONObject();
 
         for (WorkflowAssignment assignment : assignmentList) {
-           
-              WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
+
+            WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
             Map data = new HashMap();
             data.put("processId", assignment.getProcessId());
             data.put("activityId", assignment.getActivityId());
@@ -303,9 +320,9 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("activityName", assignment.getActivityName());
             data.put("processVersion", assignment.getProcessVersion());
             data.put("requestor", workflowProcess.getRequesterId());
-            data.put("dateCreated",assignment.getDateCreated());
+            data.put("dateCreated", assignment.getDateCreated());
             data.put("acceptedStatus", assignment.isAccepted());
-            data.put("due", assignment.getDueDate() != null ? assignment.getDueDate(): "-");
+            data.put("due", assignment.getDueDate() != null ? assignment.getDueDate() : "-");
 
             double serviceLevelMonitor = workflowManager.getServiceLevelMonitorForRunningActivity(assignment.getActivityId());
 
@@ -324,5 +341,4 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
         jsonObject.accumulate("desc", "");
         return jsonObject.toString();
     }
-
 }
