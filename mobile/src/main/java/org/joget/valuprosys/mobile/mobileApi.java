@@ -78,10 +78,29 @@ public class mobileApi extends DefaultApplicationPlugin
         }
 
       }
-
+       String temp_result=formService.generateElementJson(form);
       if ((dataType.equals("meta")) || (dataType.equals("all")))
       {
-        result = "{\"meta\":[" + formService.generateElementJson(form) + "]}";
+           temp_result=formService.generateElementJson(form);
+        //holiday type name handle
+        if (formDefId.indexOf("wowprime_leave")!=-1)
+        {
+           
+            if (temp_result.indexOf("<div id=\\\"centerleavechoice\\\">1<\\/div>" )!=-1)
+            {
+                temp_result=temp_result.replace("<div id=\\\"centerleavechoice\\\">1<\\/div>", MobileConst.holiday);
+            }
+             if (temp_result.indexOf("<div id=\\\"centerleavechoice\\\">2<\\/div>")!=-1)
+            {
+               temp_result=temp_result.replace("<div id=\\\"centerleavechoice\\\">2<\\/div>", MobileConst.in_turn);
+            }
+             if (temp_result.indexOf("<div id=\\\"centerleavechoice\\\">3<\\/div>")!=-1)
+            {
+                temp_result=temp_result.replace("<div id=\\\"centerleavechoice\\\">3<\\/div>", MobileConst.b_t);
+            }
+        }
+       
+        result = "{\"meta\":[" +temp_result + "]}";
       }
 
       if ((dataType.equals("data")) || (dataType.equals("all")))
@@ -112,7 +131,7 @@ public class mobileApi extends DefaultApplicationPlugin
         map.put(formDefId+MobileConst.Approver, workflowManager.getWorkflowUserManager().getCurrentUsername());
 
         if (dataType.equals("all")) {
-          result = "{\"meta\":[" + formService.generateElementJson(form) + "]," + "\"data\":[" + JsonUtil.generatePropertyJsonObject(map).toString() + "]}";
+          result = "{\"meta\":[" + temp_result + "]," + "\"data\":[" + JsonUtil.generatePropertyJsonObject(map).toString() + "]}";
         }
 
         if (dataType.equals("data"))
