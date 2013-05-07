@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1366352014277
+Bnd-LastModified: 1367914076777
 Build-Jdk: 1.6.0_26
 Built-By: realakuma
 Bundle-Activator: org.joget.valuprosys.mobile.Activator
@@ -19,15 +19,17 @@ Embedded-Artifacts: dependency/json-20080701.jar;g="org.json";a="json";v
  ="20080701",dependency/commons-lang-2.4.jar;g="commons-lang";a="commons
  -lang";v="2.4"
 Export-Package: org.joget.valuprosys.mobile;uses:="org.osgi.framework,or
- g.joget.apps.app.model,org.joget.apps.form.model,org.joget.workflow.mod
- el.service,org.joget.plugin.base,javax.servlet,org.joget.apps.app.servi
- ce,org.joget.workflow.model,org.joget.apps.form.service,javax.servlet.h
- ttp";version="3.1.0.SNAPSHOT"
-Ignore-Package: org.joget.apps.app.model,java.util,java.text,org.joget.w
- orkflow.model.service,org.springframework.context,org.joget.apps.form.m
- odel,org.joget.plugin.base,java.lang.reflect,javax.servlet,java.math,or
- g.joget.apps.app.service,java.io,org.osgi.framework,java.lang,org.joget
- .workflow.model,java.sql,org.joget.apps.form.service,javax.servlet.http
+ g.joget.apps.form.model,org.joget.apps.app.model,org.joget.apps.app.ser
+ vice,org.joget.workflow.model.service,org.joget.workflow.model,org.joge
+ t.apps.form.service,javax.servlet.http,org.joget.workflow.util,org.joge
+ t.plugin.base,javax.servlet,org.joget.commons.util";version="3.1.0.SNAP
+ SHOT"
+Ignore-Package: org.joget.apps.app.model,org.joget.workflow.util,java.ut
+ il,java.text,org.springframework.context,org.joget.workflow.model.servi
+ ce,org.joget.apps.form.model,org.joget.plugin.base,java.lang.reflect,ja
+ vax.servlet,java.math,org.joget.apps.app.service,java.io,org.osgi.frame
+ work,java.lang,org.joget.commons.util,org.joget.workflow.model,java.sql
+ ,org.joget.apps.form.service,javax.servlet.http
 Import-Package: javax.servlet,javax.servlet.http,org.joget.apps.app.dao,
  org.joget.apps.app.lib,org.joget.apps.app.model,org.joget.apps.app.serv
  ice,org.joget.apps.datalist.lib,org.joget.apps.datalist.model,org.joget

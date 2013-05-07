@@ -299,7 +299,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
         }
         if (listType.equals("pending")) {
-            assignmentList = workflowManager.getAssignmentPendingList(null, null, null, null, MobileConst.getrows);
+            assignmentList = workflowManager.getAssignmentPendingList(null, "dateCreated", true, null, MobileConst.getrows);
 
         }
         if (listType.equals("accepted")) {
@@ -311,6 +311,9 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
         JSONObject jsonObject = new JSONObject();
 
         for (WorkflowAssignment assignment : assignmentList) {
+            
+            MobileUtil mu= new MobileUtil();
+            
 
             WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
             Map data = new HashMap();
@@ -331,7 +334,8 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("id", assignment.getActivityId());
             data.put("label", assignment.getActivityName());
             data.put("description", assignment.getDescription());
-
+            FormRow row=mu.getFormDataByActivityId(assignment.getActivityId());
+            data.put("application_type",  row.getProperty(MobileConst.leaveType));
             jsonObject.accumulate("data", data);
         }
 

@@ -16,6 +16,9 @@ public class MobileConst {
     public static String GetApprovementHistoryList="getApprovementHistoryList";
     public static String GetAssignmentPendingAndAcceptedList="getAssignmentPendingAndAcceptedList";
     public static int getrows=100;
-    
+    public static String holiday="请假单";
+    public static String in_turn="调假单";
+    public static String b_t="出差单";
+    public static String leaveType="leavetype";
     
 }
