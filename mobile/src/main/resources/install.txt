@@ -1,0 +1,23 @@
+mvn install:install-file -DgroupId=jpush -DartifactId=jpush -Dversion=2.0 -Dpackaging=jar -Dfile=jpush-java-libraryV2.jar -DgeneratePom=true
+mvn install:install-file -DgroupId=gson -DartifactId=gson -Dversion=2.2 -Dpackaging=jar -Dfile=lib\gson-2.2.2.jar -DgeneratePom=true
+package com.test;
+
+import cn.jpush.api.JPushClient;
+
+public class TestJPush {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+		// 对android和ios设备发送
+		String masterSecret="1fe1abbbe75968a850a48684";
+		String appKey="0875a71ec3adec567f6dc348";
+		JPushClient jpush = new JPushClient(masterSecret, appKey);
+		String tag="ffffffff_8be5_dfa9_ffff_ffff99d603a9";
+		jpush.sendNotificationWithTag(1,tag,"测试","java api");
+	}
+
+}

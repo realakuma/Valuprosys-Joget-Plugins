@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+  <class entity-name="Mobile" name="org.joget.valuprosys.mobile.model.Mobile" table="app_fd_mobiles">
+    <id column="id" name="id" type="string"/>
+    <property column="c_device_no" name="deviceNo" type="string"/>
+    <property column="c_device_type" name="deviceType" type="string"/>
+    <property name="dateCreated" type="timestamp"/>
+    <property name="dateModified" type="timestamp"/>
+    <!-- join tables 
+        <set name="employments" inverse="true">
+            <key column="departmentId"/>
+            <one-to-many entity-name="Employment"/>
+        </set>
+        <many-to-one column="organizationId" entity-name="Organization" name="organization"/>
+        <many-to-one column="hod" entity-name="Employment" name="hod" cascade="delete"/>
+        <set name="childrens">
+            <key column="parentId"/>
+            <one-to-many entity-name="Department"/>
+        </set>
+        <many-to-one column="parentId" entity-name="Department" name="parent"/>-->
+  </class>
+</hibernate-mapping>
