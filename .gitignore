@@ -165,3 +165,6 @@ pip-log.txt
 /product/target/
 /weibointe/target/
 /mobile/target/
+*.class
+*.jar
+*.MF

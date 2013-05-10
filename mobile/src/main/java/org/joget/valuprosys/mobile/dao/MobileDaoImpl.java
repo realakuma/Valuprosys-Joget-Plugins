@@ -1,5 +1,6 @@
 package org.joget.valuprosys.mobile.dao;
 
+import java.util.Collection;
 import java.util.List;
 import org.joget.commons.spring.model.AbstractSpringDao;
 import org.joget.commons.util.LogUtil;
@@ -46,15 +47,13 @@ public class MobileDaoImpl extends AbstractSpringDao implements MobileDao {
 
    
 
-    public Mobile getMobileDeviceByUser(String userId) {
+    public Collection<Mobile> getMobileDeviceByUser(String userId) {
         try {
             Mobile mobile = new Mobile();
-            mobile.setId(userId);
+            mobile.setUserId(userId);
             List mobiles = findByExample("Mobile", mobile);
 
-            if (mobiles.size() > 0) {
-                return (Mobile) mobiles.get(0);
-            }
+           return mobiles;
         } catch (Exception e) {
             LogUtil.error(MobileDaoImpl.class.getName(), e, "Get MobileDevice By user Error!");
         }

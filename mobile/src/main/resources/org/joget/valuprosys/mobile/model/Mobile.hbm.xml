@@ -3,6 +3,7 @@
 <hibernate-mapping>
   <class entity-name="Mobile" name="org.joget.valuprosys.mobile.model.Mobile" table="app_fd_mobiles">
     <id column="id" name="id" type="string"/>
+    <id column="c_user_id" name="userId" type="string"/>
     <property column="c_device_no" name="deviceNo" type="string"/>
     <property column="c_device_type" name="deviceType" type="string"/>
     <property name="dateCreated" type="timestamp"/>

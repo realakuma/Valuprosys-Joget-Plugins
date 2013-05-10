@@ -11,7 +11,7 @@ public interface MobileDao {
 
     Boolean deleteMobileDevice(String id);
 
-    Mobile getMobileDeviceByUser(String userId);
+    Collection<Mobile> getMobileDeviceByUser(String userId);
 
     Mobile getMobileDeviceById(String Id);
 }

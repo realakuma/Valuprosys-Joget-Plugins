@@ -4,6 +4,7 @@
  */
 package org.joget.valuprosys.mobile;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.joget.apps.app.model.AppDefinition;
@@ -16,11 +17,17 @@ import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.workflow.model.WorkflowAssignment;
 import cn.jpush.api.JPushClient;
+import org.joget.valuprosys.mobile.dao.MobileDao;
+import org.joget.valuprosys.mobile.model.Mobile;
 
 public class MobileNotificationsPush extends DefaultApplicationPlugin {
 
+    private MobileDao mobiledao;
+
     @Override
     public Object execute(Map props) {
+        String masterSecret = "1fe1abbbe75968a850a48684";
+        String appKey = "0875a71ec3adec567f6dc348";
         //Get FormDefId from properties
         String formDefId = (String) props.get("formDefId");
 
@@ -31,16 +38,17 @@ public class MobileNotificationsPush extends DefaultApplicationPlugin {
         String fieldName = "";
         //Check whether record Id is configured to different value in properties grid
         wfAssignment.getAssigneeName();
-        Object[] fields = (Object[]) props.get("fields");
-        for (Object o : fields) {
-            Map mapping = (HashMap) o;
-            fieldName = mapping.get("field").toString();
-            if (FormUtil.PROPERTY_ID.equals(fieldName)) {
-                String fieldValue = mapping.get("value").toString();
-                id = fieldValue;
-                break;
-            }
+
+
+        String tag = "ffffffff_8be5_dfa9_ffff_ffff99d603a9";
+
+        mobiledao = (MobileDao) AppContext.getInstance().getAppContext().getBean("MobileDao");
+        Collection<Mobile> mobiles = mobiledao.getMobileDeviceByUser(wfAssignment.getAssigneeId());
+        for (Mobile tm : mobiles) {
+            JPushClient jpush = new JPushClient(masterSecret, appKey);
+            jpush.sendNotificationWithTag(1, tm.getDeviceNo().replace("-", "_"), "测试", "java api");
         }
+
 
         //Load the original Form Data record
         AppDefinition appDef = (AppDefinition) props.get("appDef");

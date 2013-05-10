@@ -49,6 +49,7 @@ public class MobileDeviceApi extends DefaultApplicationPlugin implements PluginW
 
         try {
             mobiledao = (MobileDao) AppContext.getInstance().getAppContext().getBean("MobileDao");
+            
             boolean isExists = false;
             DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
             conn = ds.getConnection();
@@ -59,6 +60,7 @@ public class MobileDeviceApi extends DefaultApplicationPlugin implements PluginW
             if (!isExists) {
                 Mobile mobile = new Mobile();
                 mobile.setId(UUID.randomUUID().toString());
+                mobile.setUserId(userId);
                 mobile.setDeviceNo(deviceNo);
                 mobile.setDeviceType(deviceType);
                 mobile.setDateCreated(new java.util.Date());
