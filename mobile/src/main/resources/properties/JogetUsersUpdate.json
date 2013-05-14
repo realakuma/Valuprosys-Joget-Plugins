@@ -1,0 +1,9 @@
+[{
+        title : '@@adjoget.config@@',
+        properties : [{
+                name : 'jsonUrl',
+                label : '@@adjoget.jsonurl@@',
+                type : 'textfield',
+                required : 'True'
+            }]
+    }]

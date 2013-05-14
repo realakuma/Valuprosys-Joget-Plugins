@@ -1,0 +1,33 @@
+[{
+        title : 'MessagePushConfigration',
+        properties : [{
+                name : 'formDefId',
+                label : 'Form_Name',
+                type : 'selectbox',
+                options_ajax : '[CONTEXT_PATH]/web/json/console/app[APP_PATH]/forms/options',
+                required : 'true'
+            },{
+       
+                name : 'toParticipantId',
+                label : 'receiver',
+                type : 'textfield',
+                required : 'true'
+            },
+            {       
+                name : 'enabled',
+                label : 'push_enabled',
+                type : 'selectbox',
+                value: 'yes',
+                required : 'true',
+             
+                options : [{
+                        value : 'yes',
+                        label : 'yes'
+                    },{
+                        value : 'no',
+                        label : 'no'
+                    }],
+                value : 'yes'
+                
+            }]
+    }]

@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.joget.valuprosys.mobile.model.Mobile;
 import java.util.UUID;
+import org.joget.commons.util.LogUtil;
 
 /**
  *
@@ -56,7 +57,13 @@ public class MobileDeviceApi extends DefaultApplicationPlugin implements PluginW
             // execute SQL query
             if (!conn.isClosed()) {
                 isExists = getMobileByCondtion(userId, deviceNo, deviceType, conn);
+                LogUtil.info("userId:",userId);
+                LogUtil.info("deviceNo:",deviceNo);
+                LogUtil.info("deviceType:",deviceType);
+                LogUtil.info("isExists:",String.valueOf(isExists));
             }
+            
+            
             if (!isExists) {
                 Mobile mobile = new Mobile();
                 mobile.setId(UUID.randomUUID().toString());
@@ -71,6 +78,9 @@ public class MobileDeviceApi extends DefaultApplicationPlugin implements PluginW
                 } else {
                     result = "[{\"INFO\":\"add mobileDevice error\"}]";
                 }
+            }else
+            {
+                   result = "[{\"INFO\":\"mobileDevice has been added\"}]";
             }        
             if (callback != null && !callback.equals("")) {
                 response.getWriter().write(StringEscapeUtils.escapeHtml(callback) + "(" + result + ")");
@@ -127,23 +137,27 @@ public class MobileDeviceApi extends DefaultApplicationPlugin implements PluginW
 
     protected boolean getMobileByCondtion(String userId, String deviceNo, String deviceType, Connection conn) {
         String result = "";
-        String sql = "select c_user_Id,c_device_no,c_device_type from app_fd_Mobiles where 1=1";
+        String sql = "select c_user_Id,c_device_no,c_device_type from app_fd_mobiles where 1=1";
         ResultSet rs = null;
         boolean isExists = false;
         PreparedStatement preStat = null;
-
+        /*
         if (userId != null && !userId.equals("")) {
             sql += " AND c_user_id='" + userId + "'";
         }
-
+*/
         if (deviceNo != null && !deviceNo.equals("")) {
             sql += " AND c_device_no='" + deviceNo + "'";
         }
+/*
         if (deviceType != null && !deviceType.equals("")) {
             sql += " AND c_device_type='" + deviceType + "'";
         }
+
+ */
         try {
             // conn=apps.getJDBCConnection(apps,apps.getSessionId());
+            LogUtil.info("sql:",sql);
             preStat = conn.prepareStatement(sql);
             rs = preStat.executeQuery();
             isExists = rs.next();

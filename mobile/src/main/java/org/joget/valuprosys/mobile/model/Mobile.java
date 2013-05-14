@@ -64,3 +64,5 @@ public class Mobile implements Serializable{
         this.deviceType = deviceType;
     }
 }
+
+

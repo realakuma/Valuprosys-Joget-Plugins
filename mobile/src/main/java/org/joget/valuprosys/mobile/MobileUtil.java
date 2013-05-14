@@ -19,6 +19,8 @@ import org.joget.apps.form.model.FormRowSet;
 import org.joget.apps.form.service.FormService;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
+import org.joget.apps.app.dao.EnvironmentVariableDao;
+import org.joget.apps.app.model.EnvironmentVariable;
 
 /**
  *
@@ -69,5 +71,25 @@ public class MobileUtil {
             row = rowSet.get(0);
         }
         return row;
+    }
+
+    public static String getEnvVarByName(String envVariable, AppDefinition appDef, EnvironmentVariableDao environmentVariableDao) {
+        String envValue = "";
+        EnvironmentVariable env = environmentVariableDao.loadById(envVariable, appDef);
+
+
+
+        if (env != null && env.getValue() != null && env.getValue().trim().length() > 0) {
+            envValue = env.getValue();
+        }
+        return envValue;
+    }
+
+    public static void setEnvVar(String envVariable, String envVarValue, AppDefinition appDef, EnvironmentVariableDao environmentVariableDao) {
+        EnvironmentVariable env = environmentVariableDao.loadById(envVariable, appDef);
+
+        env.setValue(envVarValue);
+        environmentVariableDao.update(env);
+
     }
 }
