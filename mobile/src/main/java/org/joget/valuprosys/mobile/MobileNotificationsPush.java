@@ -34,14 +34,14 @@ public class MobileNotificationsPush extends DefaultApplicationPlugin {
     public Object execute(Map props) {
         String masterSecret = "1fe1abbbe75968a850a48684";
         String appKey = "0875a71ec3adec567f6dc348";
-        String sendNo="";
+        String sendNo = "";
         //Get FormDefId from properties
         String formDefId = (String) props.get("formDefId");
         String toParticipantId = (String) props.get("toParticipantId");
         String enabled = (String) props.get("enabled");
-        
-        if (!enabled.equals("yes"))
-        {
+
+
+        if (!enabled.equals("yes")) {
             return null;
         }
 
@@ -53,38 +53,41 @@ public class MobileNotificationsPush extends DefaultApplicationPlugin {
         EnvironmentVariableDao environmentVariableDao = (EnvironmentVariableDao) AppUtil.getApplicationContext().getBean("environmentVariableDao");
 
         AppDefinition appDef = (AppDefinition) props.get("appDef");
+        masterSecret = MobileUtil.getEnvVarByName("masterSecret", appDef, environmentVariableDao);
+        appKey = MobileUtil.getEnvVarByName("appKey", appDef, environmentVariableDao);
+        sendNo = MobileUtil.getEnvVarByName("sendNo", appDef, environmentVariableDao);
+
 
         String id = appService.getOriginProcessId(wfAssignment.getProcessId());
         WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(wfAssignment.getProcessId());
         Collection<Mobile> mobiles = null;
         //FormRow row = this.mobileutil.getFormDataByActivityId(wfAssignment.getActivityId());
         //String tag = "ffffffff_8be5_dfa9_ffff_ffff99d603a9";
-
-        Collection<String> userList = null;
-        userList = WorkflowUtil.getAssignmentUsers(workflowProcess.getPackageId(), wfAssignment.getProcessDefId(), wfAssignment.getProcessId(), wfAssignment.getProcessVersion(), wfAssignment.getActivityId(), "", toParticipantId);
-
-        for (String user : userList) {
-            mobiles = mobiledao.getMobileDeviceByUser(user);
-        }
-
         //get form data
         FormRow row = new FormRow();
         FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
         if (!rowSet.isEmpty()) {
             row = rowSet.get(0);
         }
-        masterSecret = MobileUtil.getEnvVarByName("masterSecret", appDef, environmentVariableDao);
-        appKey = MobileUtil.getEnvVarByName("appKey", appDef, environmentVariableDao);
-        sendNo = MobileUtil.getEnvVarByName("sendNo", appDef, environmentVariableDao);
-        for (Mobile tm : mobiles) {
-            JPushClient jpush = new JPushClient(masterSecret, appKey);
-            LogUtil.info("userId:", tm.getUserId());
-            LogUtil.info("deviceNo:", tm.getDeviceNo());
-            jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + workflowProcess.getRequesterId() + "的审批请求", "申请类型:" + row.getProperty("leavetype"));
+
+        Collection<String> userList = null;
+        userList = WorkflowUtil.getAssignmentUsers(workflowProcess.getPackageId(), wfAssignment.getProcessDefId(), wfAssignment.getProcessId(), wfAssignment.getProcessVersion(), wfAssignment.getActivityId(), "", toParticipantId);
+
+        for (String user : userList) {
+            mobiles = mobiledao.getMobileDeviceByUser(user);
+            for (Mobile tm : mobiles) {
+                JPushClient jpush = new JPushClient(masterSecret, appKey);
+                LogUtil.info("userId:", tm.getUserId());
+                LogUtil.info("deviceNo:", tm.getDeviceNo());
+                jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + workflowProcess.getRequesterId() + "的审批请求", "申请类型:" + row.getProperty("leavetype"));
+            }
         }
-        
+
+
+
+
         //sendNo++
-        MobileUtil.setEnvVar("sendNo", String.valueOf(Integer.parseInt(sendNo)+1), appDef, environmentVariableDao);
+        MobileUtil.setEnvVar("sendNo", String.valueOf(Integer.parseInt(sendNo) + 1), appDef, environmentVariableDao);
 
 
 

@@ -20,12 +20,10 @@ public class MobileConst {
     public static String in_turn="调假单";
     public static String b_t="出差单";
     public static String leaveType="leavetype";
-<<<<<<< HEAD
     public static String wowApiGetEmp="http://10.0.10.122:88/GetEmp";
     public static String wowApiGetOrg="http://10.0.10.122:88/GetOrg";
-=======
-    public static String appKey="0875a71ec3adec567f6dc348";
-    public static String masterSecret="1fe1abbbe75968a850a48684";
->>>>>>> f94126ba6cb4e6a0aad7191706997920f0714926
-    
+    public static String subFormPoDetail="subform_po_detail";
+    public static String subFormFeeDetailUrl="custom_jw/expense_subfrom.jsp?id=";
+    public static String subFormFeeDetail="subform_fee_detail";
+    public static String subFormPoDetailUrl="custom_jw/product_subfrom.jsp?id=";
 }

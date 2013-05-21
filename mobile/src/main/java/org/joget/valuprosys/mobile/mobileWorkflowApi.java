@@ -335,7 +335,22 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("label", assignment.getActivityName());
             data.put("description", assignment.getDescription());
             FormRow row=mu.getFormDataByActivityId(assignment.getActivityId());
+            if (row!=null)
+            {
             data.put("application_type",  row.getProperty(MobileConst.leaveType));
+            }else
+            {
+                if (assignment.getProcessName().contains("费用报销"))
+                {
+                     data.put("application_type",  "费用报销");
+                }
+                
+                  if (assignment.getProcessName().contains("请购"))
+                {
+                     data.put("application_type",  "请购");
+                }
+               
+            }
             jsonObject.accumulate("data", data);
         }
 

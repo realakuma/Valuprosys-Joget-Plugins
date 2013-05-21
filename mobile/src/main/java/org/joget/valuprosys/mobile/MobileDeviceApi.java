@@ -55,6 +55,7 @@ public class MobileDeviceApi extends DefaultApplicationPlugin implements PluginW
             DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
             conn = ds.getConnection();
             // execute SQL query
+            LogUtil.info(this.getClassName(), deviceNo);
             if (!conn.isClosed()) {
                 isExists = getMobileByCondtion(userId, deviceNo, deviceType, conn);
                 LogUtil.info("userId:",userId);

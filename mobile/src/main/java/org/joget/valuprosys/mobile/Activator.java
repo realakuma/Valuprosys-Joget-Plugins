@@ -18,6 +18,8 @@ public class Activator implements BundleActivator {
         registrationList.add(context.registerService(mobileWorkflowApi.class.getName(), new mobileWorkflowApi(), null));
         registrationList.add(context.registerService(MobileDeviceApi.class.getName(), new MobileDeviceApi(), null));
         registrationList.add(context.registerService(MobileNotificationsPush.class.getName(), new MobileNotificationsPush(), null));
+        registrationList.add(context.registerService(JogetUsersUpdate.class.getName(), new JogetUsersUpdate(), null));
+
     }
 
     public void stop(BundleContext context) {

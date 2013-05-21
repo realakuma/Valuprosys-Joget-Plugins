@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
@@ -17,13 +18,23 @@ import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.directory.model.service.DirectoryManager;
 import org.joget.plugin.base.PluginManager;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.joget.commons.util.StringUtil;
+import org.joget.directory.dao.EmploymentDao;
 import org.joget.directory.model.User;
 import org.joget.directory.dao.RoleDao;
 import org.joget.directory.dao.UserDao;
+import org.joget.directory.model.Employment;
 import org.joget.plugin.property.service.PropertyUtil;
+import org.apache.commons.beanutils.BeanUtils;
+import org.joget.directory.dao.OrganizationDao;
+import org.joget.directory.model.Organization;
 
 /**
  *
@@ -33,8 +44,11 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
 
     private DirectoryManager directoryManager;
     private User user;
+    private Organization organization;
     private UserDao userDao;
     private RoleDao roleDao;
+    private EmploymentDao employmentDao;
+    private OrganizationDao organizationDao;
 
     @Override
     public Object execute(Map props) {
@@ -43,8 +57,8 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         directoryManager = (DirectoryManager) pluginManager.getBean("directoryManager");
         userDao = (UserDao) AppUtil.getApplicationContext().getBean("userDao");
         roleDao = (RoleDao) AppUtil.getApplicationContext().getBean("roleDao");
-
-
+        employmentDao = (EmploymentDao) AppUtil.getApplicationContext().getBean("employmentDao");
+        organizationDao = (OrganizationDao) AppUtil.getApplicationContext().getBean("organizationDao");
         /*
         String search_base = (String) props.get("search_base");
         String security_principal = (String) props.get("security_principal");
@@ -56,7 +70,8 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         try {
 
             HttpClient client = new HttpClient();
-
+            client.getParams().setParameter(
+                    HttpMethodParams.HTTP_CONTENT_CHARSET, "UTF8");
             //jsonUrl = WorkflowUtil.processVariable(jsonUrl, "", wfAssignment);
             String jsonUrl = (String) props.get("jsonUrl");
             GetMethod get = null;
@@ -64,11 +79,42 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
             jsonUrl = StringUtil.encodeUrlParam(jsonUrl);
 
             get = new GetMethod(jsonUrl);
+
             client.executeMethod(get);
+
             InputStream in = get.getResponseBodyAsStream();
             String jsonResponse = streamToString(in);
+            /*
+            if (!jsonResponse.startsWith("[")) {
+            jsonResponse = "[" + jsonResponse + "]";
+            }
+             */
+            JSONObject jsonObjSplit = JSONObject.fromObject(jsonResponse);
 
-            Map object = PropertyUtil.getPropertiesValueFromJson(jsonResponse);
+//find data
+            JSONArray jsonEmpArray = jsonObjSplit.getJSONArray("data");
+            for (int i = 0; i < jsonEmpArray.size(); i++) {
+
+                if (jsonUrl.contains("GetEmp")) {
+                    JSONObject jo = (JSONObject) jsonEmpArray.get(i);
+                    user = directoryManager.getUserByUsername(jo.get("email").toString().substring(0, jo.get("email").toString().indexOf("@")));
+                    if (user == null) {
+                        addUser(jo.get("empName").toString(), jo.get("empNo").toString(), jo.get("email").toString());
+                    }
+                }
+                if (jsonUrl.contains("GetOrg")) {
+                    JSONObject jo = (JSONObject) jsonEmpArray.get(i);
+                    organization = organizationDao.getOrganization(jo.get("orgID").toString());
+                    if (organization == null) {
+                        addOrganization(jo.get("orgID").toString(), jo.get("orgName").toString());
+                    }
+                }
+            }
+
+
+//            Map object = PropertyUtil.getPropertiesValueFromJson(jsonResponse);
+
+
 
             //获得AD中的用户
         /*
@@ -118,20 +164,27 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         return AppUtil.readPluginResource(getClass().getName(), "/properties/JogetUsersUpdate.json", null, true, "/messages/JogetUsersUpdate_zh_CN");
     }
 
-    protected void addUser(String username) {
+    protected void addUser(String username, String EmployeeCode, String Email) {
         User user = new User();
         Set roles = new HashSet();
+        Employment emp = new Employment();
         roles.add(roleDao.getRole("ROLE_USER"));
         user.setActive(1);
-        user.setId(username);
-        user.setUsername(username);
+        user.setId(Email.substring(0, Email.indexOf("@")));
+        user.setUsername(Email.substring(0, Email.indexOf("@")));
         user.setFirstName(username);
         user.setRoles(roles);
+        user.setEmail(Email);
+        emp.setEmployeeCode(EmployeeCode);
+        emp.setUserId(Email.substring(0, Email.indexOf("@")));
         userDao.addUser(user);
+        employmentDao.addEmployment(emp);
+
+
     }
 
-    protected String streamToString(InputStream in) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+    protected String streamToString(InputStream in) throws UnsupportedEncodingException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in, "utf8"));
         StringBuilder sb = new StringBuilder();
 
         String line = null;
@@ -150,5 +203,13 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         }
 
         return sb.toString();
+    }
+
+    protected void addOrganization(String orgId, String orgName) {
+        Organization organization = new Organization();
+        organization.setId(orgId);
+        organization.setName(orgName);
+        organization.setDescription(null);
+        organizationDao.addOrganization(organization);
     }
 }
