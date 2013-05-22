@@ -142,7 +142,7 @@ public class mobileApi extends DefaultApplicationPlugin
                 }
 
                 if (process_name.contains("费用报销")) {
-                    map.put(MobileConst.subFormPoDetail, basePath + MobileConst.subFormPoDetailUrl + map.get("expenseId").toString());
+                    map.put(MobileConst.subFormFeeDetail, basePath + MobileConst.subFormFeeDetailUrl + map.get("expenseId").toString());
                 }
                 /*
                  //Element sub_form = FormUtil.findElement(MobileConst.subFormPoDetail, form, formData);

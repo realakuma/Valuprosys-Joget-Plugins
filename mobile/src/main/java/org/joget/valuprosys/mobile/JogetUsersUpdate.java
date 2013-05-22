@@ -35,6 +35,9 @@ import org.joget.plugin.property.service.PropertyUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.joget.directory.dao.OrganizationDao;
 import org.joget.directory.model.Organization;
+import org.joget.directory.model.Department;
+import org.joget.directory.dao.DepartmentDao;
+
 
 /**
  *
@@ -47,8 +50,10 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
     private Organization organization;
     private UserDao userDao;
     private RoleDao roleDao;
+    private Department department; 
     private EmploymentDao employmentDao;
     private OrganizationDao organizationDao;
+    private DepartmentDao  departmentDao;
 
     @Override
     public Object execute(Map props) {
@@ -59,6 +64,7 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         roleDao = (RoleDao) AppUtil.getApplicationContext().getBean("roleDao");
         employmentDao = (EmploymentDao) AppUtil.getApplicationContext().getBean("employmentDao");
         organizationDao = (OrganizationDao) AppUtil.getApplicationContext().getBean("organizationDao");
+        departmentDao=(DepartmentDao)AppUtil.getApplicationContext().getBean("departmentDao");
         /*
         String search_base = (String) props.get("search_base");
         String security_principal = (String) props.get("security_principal");
@@ -99,14 +105,14 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
                     JSONObject jo = (JSONObject) jsonEmpArray.get(i);
                     user = directoryManager.getUserByUsername(jo.get("email").toString().substring(0, jo.get("email").toString().indexOf("@")));
                     if (user == null) {
-                        addUser(jo.get("empName").toString(), jo.get("empNo").toString(), jo.get("email").toString());
+                        addUser(jo.get("empName").toString(), jo.get("empNo").toString(), "",jo.get("email").toString(),"","");
                     }
                 }
                 if (jsonUrl.contains("GetOrg")) {
                     JSONObject jo = (JSONObject) jsonEmpArray.get(i);
-                    organization = organizationDao.getOrganization(jo.get("orgID").toString());
-                    if (organization == null) {
-                        addOrganization(jo.get("orgID").toString(), jo.get("orgName").toString());
+                    department = departmentDao.getDepartment(jo.get("orgID").toString());
+                    if (department == null) {
+                        addDepartment(jo.get("orgID").toString(), jo.get("orgName").toString(),"WOWPRIME");
                     }
                 }
             }
@@ -164,7 +170,7 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         return AppUtil.readPluginResource(getClass().getName(), "/properties/JogetUsersUpdate.json", null, true, "/messages/JogetUsersUpdate_zh_CN");
     }
 
-    protected void addUser(String username, String EmployeeCode, String Email) {
+    protected void addUser(String username, String EmployeeCode, String jobTitle,String Email,String deptId,String orgId ) {
         User user = new User();
         Set roles = new HashSet();
         Employment emp = new Employment();
@@ -176,6 +182,9 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         user.setRoles(roles);
         user.setEmail(Email);
         emp.setEmployeeCode(EmployeeCode);
+        emp.setDepartmentId(deptId);
+        emp.setRole(jobTitle);
+        emp.setOrganizationId(orgId);
         emp.setUserId(Email.substring(0, Email.indexOf("@")));
         userDao.addUser(user);
         employmentDao.addEmployment(emp);
@@ -210,6 +219,16 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         organization.setId(orgId);
         organization.setName(orgName);
         organization.setDescription(null);
+        
         organizationDao.addOrganization(organization);
+    }
+    
+        protected void addDepartment(String deptId, String deptName,String orgId) {
+        Department department = new Department();
+        department.setOrganization(organizationDao.getOrganization(orgId));
+        department.setId(deptId);
+        department.setName(deptName);
+        department.setDescription(null);
+        departmentDao.addDepartment(department);
     }
 }

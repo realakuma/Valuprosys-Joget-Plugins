@@ -23,7 +23,8 @@ public class MobileConst {
     public static String wowApiGetEmp="http://10.0.10.122:88/GetEmp";
     public static String wowApiGetOrg="http://10.0.10.122:88/GetOrg";
     public static String subFormPoDetail="subform_po_detail";
-    public static String subFormFeeDetailUrl="custom_jw/expense_subfrom.jsp?id=";
-    public static String subFormFeeDetail="subform_fee_detail";
     public static String subFormPoDetailUrl="custom_jw/product_subfrom.jsp?id=";
+    public static String subFormFeeDetail="subform_fee_detail";
+    public static String subFormFeeDetailUrl="custom_jw/expense_subfrom.jsp?id=";
+    
 }
