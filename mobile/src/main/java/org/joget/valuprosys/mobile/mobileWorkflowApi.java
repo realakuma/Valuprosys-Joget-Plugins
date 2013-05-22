@@ -311,9 +311,9 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
         JSONObject jsonObject = new JSONObject();
 
         for (WorkflowAssignment assignment : assignmentList) {
-            
-            MobileUtil mu= new MobileUtil();
-            
+
+            MobileUtil mu = new MobileUtil();
+            FormRow row = null;
 
             WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
             Map data = new HashMap();
@@ -334,22 +334,20 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("id", assignment.getActivityId());
             data.put("label", assignment.getActivityName());
             data.put("description", assignment.getDescription());
-            FormRow row=mu.getFormDataByActivityId(assignment.getActivityId());
-            if (row!=null)
-            {
-            data.put("application_type",  row.getProperty(MobileConst.leaveType));
-            }else
-            {
-                if (assignment.getProcessName().contains("费用报销"))
-                {
-                     data.put("application_type",  "费用报销");
+            if (!assignment.getProcessName().contains("费用报销") && !assignment.getProcessName().contains("请购")) {
+                row = mu.getFormDataByActivityId(assignment.getActivityId());
+            }
+            if (row != null) {
+                data.put("application_type", row.getProperty(MobileConst.leaveType));
+            } else {
+                if (assignment.getProcessName().contains("费用报销")) {
+                    data.put("application_type", "费用报销");
                 }
-                
-                  if (assignment.getProcessName().contains("请购"))
-                {
-                     data.put("application_type",  "请购");
+
+                if (assignment.getProcessName().contains("请购")) {
+                    data.put("application_type", "请购");
                 }
-               
+
             }
             jsonObject.accumulate("data", data);
         }
