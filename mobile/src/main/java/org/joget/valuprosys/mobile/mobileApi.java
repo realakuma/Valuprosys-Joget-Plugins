@@ -74,6 +74,7 @@ public class mobileApi extends DefaultApplicationPlugin
             }
 
             if (assignment != null) {
+
                 activityForm = appService.viewAssignmentForm(appDef, assignment, formData, "");
                 form = activityForm.getForm();
                 if (formDefId.equals("")) {
@@ -108,20 +109,22 @@ public class mobileApi extends DefaultApplicationPlugin
             if ((dataType.equals("data")) || (dataType.equals("all"))) {
                 Map map;
                 map = null;
-                if (!process_name.contains("请购") || !process_name.contains("费用报销")) {
-                    FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
-                    FormRow row = null;
-
-                    if ((rowSet != null) && (!rowSet.isEmpty())) {
-                        row = (FormRow) rowSet.get(0);
-                    }
-                    
-                    if (row != null) {
-                        map = new HashMap(row);
-                    } else {
-                        map = new HashMap();
-                    }
+                FormRowSet rowSet=null;
+                if (!process_name.contains("请购") && !process_name.contains("费用报销")) {
+                   rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
                 }
+                FormRow row = null;
+
+                if ((rowSet != null) && (!rowSet.isEmpty())) {
+                    row = (FormRow) rowSet.get(0);
+                }
+
+                if (row != null) {
+                    map = new HashMap(row);
+                } else {
+                    map = new HashMap();
+                }
+                //
 
                 Collection<WorkflowVariable> variableList = workflowManager.getProcessVariableList(processId);
 
@@ -138,30 +141,30 @@ public class mobileApi extends DefaultApplicationPlugin
 
                 // setting po sub_form link
                 if (process_name.contains("请购")) {
-                    map.put(MobileConst.subFormPoDetail, basePath + MobileConst.subFormPoDetailUrl + map.get("productFormId").toString());
+                    map.put(MobileConst.subFormPoDetail, basePath + MobileConst.subFormPoDetailUrl + map.get("productId").toString());
                 }
 
                 if (process_name.contains("费用报销")) {
                     map.put(MobileConst.subFormFeeDetail, basePath + MobileConst.subFormFeeDetailUrl + map.get("expenseId").toString());
                 }
                 /*
-                 //Element sub_form = FormUtil.findElement(MobileConst.subFormPoDetail, form, formData);
-                 if (sub_form != null) {
-                 map.put(MobileConst.subFormPoDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("productFormId").toString());
-                 JSONObject jsonobject=JSONObject.fromObject(temp_result);
-                 jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
-                 temp_result=jsonobject.toString();
-                    
-                 }
-
-                 sub_form = FormUtil.findElement(MobileConst.subFormFeeDetail, form, formData);
-                 // setting fee sub_form link
-                 if (sub_form != null) {
-                 map.put(MobileConst.subFormFeeDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("expenseId").toString());
-                 JSONObject jsonobject=JSONObject.fromObject(temp_result);
-                 jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
-                 temp_result=jsonobject.toString();
-                 }
+                //Element sub_form = FormUtil.findElement(MobileConst.subFormPoDetail, form, formData);
+                if (sub_form != null) {
+                map.put(MobileConst.subFormPoDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("productFormId").toString());
+                JSONObject jsonobject=JSONObject.fromObject(temp_result);
+                jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
+                temp_result=jsonobject.toString();
+                
+                }
+                
+                sub_form = FormUtil.findElement(MobileConst.subFormFeeDetail, form, formData);
+                // setting fee sub_form link
+                if (sub_form != null) {
+                map.put(MobileConst.subFormFeeDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("expenseId").toString());
+                JSONObject jsonobject=JSONObject.fromObject(temp_result);
+                jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
+                temp_result=jsonobject.toString();
+                }
                  */
                 //setting current approver
                 map.put(formDefId + MobileConst.Approver, workflowManager.getWorkflowUserManager().getCurrentUsername());

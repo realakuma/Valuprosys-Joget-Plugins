@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -188,10 +189,12 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                             Element selectbox = FormUtil.findElement(entry.getKey().toString(), loadForm, formData);
                             // get options
                             FormRowSet tmp_rowset = (FormRowSet) selectbox.getProperty("options");
-                            for (FormRow tmp_row : tmp_rowset) {
-                                if (entry.getValue().equals(tmp_row.getProperty("value"))) {
-                                    data.put("Result", tmp_row.getProperty("label"));
+                            if (tmp_rowset != null) {
+                                for (FormRow tmp_row : tmp_rowset) {
+                                    if (entry.getValue().equals(tmp_row.getProperty("value"))) {
+                                        data.put("Result", tmp_row.getProperty("label"));
 
+                                    }
                                 }
                             }
 
@@ -235,6 +238,19 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                 FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
 
                 FormRow row = null;
+
+                if (rowSet == null || rowSet.isEmpty()) {
+                    Date currentDate = new Date();
+                    if (rowSet == null) {
+                        rowSet = new FormRowSet();
+                    }
+                    row = new FormRow();
+                    row.setId(id);
+                    row.setDateModified(currentDate);
+                    row.setDateCreated(currentDate);
+                    rowSet.add(row);
+
+                }
 
                 Map<String, String> workflowApproveINFO = MobileUtil.retrieveApproveINFOFromRequest(request, formDefId);
 
@@ -340,12 +356,17 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             if (row != null) {
                 data.put("application_type", row.getProperty(MobileConst.leaveType));
             } else {
+                /*to do 以下部分应该必成从form上去*/
                 if (assignment.getProcessName().contains("费用报销")) {
                     data.put("application_type", "费用报销");
                 }
 
                 if (assignment.getProcessName().contains("请购")) {
                     data.put("application_type", "请购");
+                }
+                
+                 if (assignment.getProcessName().contains("加班")) {
+                    data.put("application_type", "加班");
                 }
 
             }
