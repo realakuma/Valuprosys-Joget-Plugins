@@ -5,5 +5,24 @@
                 label : '@@adjoget.jsonurl@@',
                 type : 'textfield',
                 required : 'True'
-            }]
+            },{       
+                name : 'type',
+                label : '导入类型',
+                type : 'selectbox',
+                value: '组织',
+                required : 'true',
+             
+                options : [{
+                        value : 'GetOrgInfo',
+                        label : '组织'
+                    },{
+                        value : 'GetOrg',
+                        label : '部门'
+                    },
+                {
+                        value : 'GetEmp',
+                        label : '人员'
+                    }]
+            }
+        ]
     }]

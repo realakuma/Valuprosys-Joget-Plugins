@@ -15,7 +15,9 @@
         <property name="mappingResources">
             <list>
                 <value>org/joget/valuprosys/mobile/model/Mobile.hbm.xml</value>
-             </list>
+                <value>org/joget/valuprosys/mobile/model/CusUser.hbm.xml</value>
+                <value>org/joget/valuprosys/mobile/model/CusDept.hbm.xml</value>
+            </list>
         </property>
         <property name="hibernateProperties">
             <props>
@@ -33,7 +35,13 @@
         <property name="sessionFactory" ref="directorySessionFactory" />
         <property name="localSessionFactory" ref="&amp;directorySessionFactory"/>
     </bean>
-    
-    
+    <bean id="CusUserDao" class="org.joget.valuprosys.mobile.dao.CusUserDaoImpl">
+        <property name="sessionFactory" ref="directorySessionFactory" />
+        <property name="localSessionFactory" ref="&amp;directorySessionFactory"/>
+    </bean>
+    <bean id="CusDeptDao" class="org.joget.valuprosys.mobile.dao.CusDeptDaoImpl">
+        <property name="sessionFactory" ref="directorySessionFactory" />
+        <property name="localSessionFactory" ref="&amp;directorySessionFactory"/>
+    </bean>
     
 </beans>

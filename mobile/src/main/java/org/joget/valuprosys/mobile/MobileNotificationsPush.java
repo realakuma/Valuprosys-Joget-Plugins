@@ -19,6 +19,7 @@ import org.joget.workflow.model.WorkflowAssignment;
 import cn.jpush.api.JPushClient;
 
 import org.joget.apps.app.dao.EnvironmentVariableDao;
+import org.joget.directory.dao.UserDao;
 import org.joget.valuprosys.mobile.dao.MobileDao;
 import org.joget.valuprosys.mobile.model.Mobile;
 import org.joget.workflow.model.WorkflowActivity;
@@ -29,6 +30,7 @@ import org.joget.workflow.util.WorkflowUtil;
 public class MobileNotificationsPush extends DefaultApplicationPlugin {
 
     private MobileDao mobiledao;
+    private UserDao userDao;
 
     @Override
     public Object execute(Map props) {
@@ -47,6 +49,7 @@ public class MobileNotificationsPush extends DefaultApplicationPlugin {
 
         //init compantents
         mobiledao = (MobileDao) AppContext.getInstance().getAppContext().getBean("MobileDao");
+        userDao = (UserDao) AppUtil.getApplicationContext().getBean("userDao");
         WorkflowAssignment wfAssignment = (WorkflowAssignment) props.get("workflowAssignment");
         AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
         WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
@@ -79,7 +82,18 @@ public class MobileNotificationsPush extends DefaultApplicationPlugin {
                 JPushClient jpush = new JPushClient(masterSecret, appKey);
                 LogUtil.info("userId:", tm.getUserId());
                 LogUtil.info("deviceNo:", tm.getDeviceNo());
-                jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + workflowProcess.getRequesterId() + "的审批请求", "申请类型:" + row.getProperty("leavetype"));
+                if (wfAssignment.getProcessName().contains("请假")){
+                jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + userDao.getUserById(workflowProcess.getRequesterId()) + "的审批请求", "申请类型:" + row.getProperty("leavetype"));
+                }
+                if (wfAssignment.getProcessName().contains("加班")){
+                jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + userDao.getUserById(workflowProcess.getRequesterId()) + "的审批请求", "申请类型:" + "加班");
+                }
+                if (wfAssignment.getProcessName().contains("费用")){
+                jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + userDao.getUserById(workflowProcess.getRequesterId()) + "的审批请求", "申请类型:" + "费用报销");
+                }
+                if (wfAssignment.getProcessName().contains("请购")){
+                jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + userDao.getUserById(workflowProcess.getRequesterId()) + "的审批请求", "申请类型:" + "请购");
+                }
             }
         }
 
