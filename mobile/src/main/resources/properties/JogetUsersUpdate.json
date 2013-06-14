@@ -6,7 +6,7 @@
                 type : 'textfield',
                 required : 'True'
             },{       
-                name : 'type',
+                name : 'import_type',
                 label : '导入类型',
                 type : 'selectbox',
                 value: '组织',

@@ -119,25 +119,25 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
 
                 if (import_type.equals("GetEmp")) {
                     JSONObject jo = (JSONObject) jsonEmpArray.get(i);
-                    user = directoryManager.getUserByUsername(jo.get("email").toString().substring(0, jo.get("email").toString().indexOf("@")));
+                    user = directoryManager.getUserByUsername(jo.get("empNo").toString());
                     if (user == null) {
-                        addUser(jo.get("empName").toString(), jo.get("empHrNo").toString(), "", jo.get("email").toString(), jo.get("empDept").toString(), jo.get("empOrg").toString());
+                        addUser(jo.get("empNo").toString(), jo.get("empName").toString(), jo.get("empHrNo").toString(), jo.get("empJob").toString(), jo.get("empEmail").toString(), jo.get("empDept").toString(), jo.get("empOrg").toString());
                     }
 
-                    cusUser = cusUserDao.getUserById(jo.get("email").toString().substring(0, jo.get("email").toString().indexOf("@")));
+                    cusUser = cusUserDao.getUserById(jo.get("empNo").toString());
                     if (cusUser == null) {
-                        addCusUser(jo.get("empName").toString(), jo.get("empNo").toString(), "", jo.get("email").toString(), "", "");
+                        addCusUser(jo.get("empNo").toString(), jo.get("empName").toString(), jo.get("empHrNo").toString(), "", jo.get("empEmail").toString(), "", "");
                     }
                 }
                 if (import_type.equals("GetOrg")) {
                     JSONObject jo = (JSONObject) jsonEmpArray.get(i);
-                    department = departmentDao.getDepartment(jo.get("orgID").toString());
+                    department = departmentDao.getDepartment(jo.get("deptId").toString());
                     if (department == null) {
-                        addDepartment(jo.get("deptId").toString(), jo.get("orgName").toString(), jo.get("orgId").toString());
+                        addDepartment(jo.get("deptId").toString(), jo.get("deptName").toString(), jo.get("orgId").toString());
                     }
-                    cusDept = cusDeptDao.getDeptById(jo.get("orgID").toString());
+                    cusDept = cusDeptDao.getDeptById(jo.get("deptId").toString());
                     if (cusDept == null) {
-                        addCusDept(jo.get("deptId").toString(), jo.get("orgName").toString(), jo.get("orgId").toString());
+                        addCusDept(jo.get("deptId").toString(), jo.get("deptName").toString(), jo.get("orgId").toString());
                     }
 
                 }
@@ -145,7 +145,7 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
                     JSONObject jo = (JSONObject) jsonEmpArray.get(i);
                     organization = organizationDao.getOrganization(jo.get("orgIdHR").toString());
                     if (organization == null) {
-                        addOrganization(jo.get("orgID").toString(), jo.get("orgName").toString());
+                        addOrganization(jo.get("orgIdHR").toString(), jo.get("orgName").toString());
                     }
 
 
@@ -205,23 +205,26 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
         return AppUtil.readPluginResource(getClass().getName(), "/properties/JogetUsersUpdate.json", null, true, "/messages/JogetUsersUpdate_zh_CN");
     }
 
-    protected void addUser(String username, String EmployeeCode, String jobTitle, String Email, String deptId, String orgId) throws IOException {
+    protected void addUser(String empNo, String username, String EmployeeCode, String jobTitle, String Email, String deptId, String orgId) throws IOException {
         User user = new User();
         Set roles = new HashSet();
         Employment emp = new Employment();
         roles.add(roleDao.getRole("ROLE_USER"));
         user.setActive(1);
-        user.setId(Email.substring(0, Email.indexOf("@")));
-        user.setUsername(Email.substring(0, Email.indexOf("@")));
+        user.setId(empNo);
+        user.setUsername(empNo);
         user.setFirstName(username);
         user.setRoles(roles);
         user.setEmail(Email);
+        user.setTimeZone("8");
         emp.setEmployeeCode(EmployeeCode);
         emp.setDepartmentId(deptId);
         HttpClient client = new HttpClient();
+        client.getParams().setParameter(
+                HttpMethodParams.HTTP_CONTENT_CHARSET, "UTF8");
         GetMethod get = null;
         getJobUrl = StringUtil.encodeUrlParam(getJobUrl);
-        get = new GetMethod(getJobUrl+"?JobNo="+jobTitle);
+        get = new GetMethod(getJobUrl + "?JobNo=" + jobTitle);
 
         client.executeMethod(get);
 
@@ -240,18 +243,18 @@ public class JogetUsersUpdate extends DefaultApplicationPlugin {
             emp.setRole(jo.get("JobName").toString());
         }
         emp.setOrganizationId(orgId);
-        emp.setUserId(Email.substring(0, Email.indexOf("@")));
+        emp.setUserId(empNo);
         userDao.addUser(user);
         employmentDao.addEmployment(emp);
 
 
     }
 
-    protected void addCusUser(String username, String EmployeeCode, String jobTitle, String Email, String deptId, String orgId) {
+    protected void addCusUser(String empNo, String username, String EmployeeCode, String jobTitle, String Email, String deptId, String orgId) {
         CusUser cusUser = new CusUser();
 
-        cusUser.setId(Email.substring(0, Email.indexOf("@")));
-        cusUser.setUserId(Email.substring(0, Email.indexOf("@")));
+        cusUser.setId(empNo);
+        cusUser.setUserId(empNo);
         cusUser.setUserName(username);
         cusUser.setDateCreated(new java.util.Date());
         cusUser.setDateModified(new java.util.Date());
