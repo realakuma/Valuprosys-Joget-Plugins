@@ -109,9 +109,9 @@ public class mobileApi extends DefaultApplicationPlugin
             if ((dataType.equals("data")) || (dataType.equals("all"))) {
                 Map map;
                 map = null;
-                FormRowSet rowSet=null;
+                FormRowSet rowSet = null;
                 if (!process_name.contains("请购") && !process_name.contains("费用报销")) {
-                   rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
+                    rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
                 }
                 FormRow row = null;
 
@@ -119,7 +119,12 @@ public class mobileApi extends DefaultApplicationPlugin
                     row = (FormRow) rowSet.get(0);
                 }
 
+
                 if (row != null) {
+                    if (process_name.contains("请假")) {
+                        MobileUtil mu = new MobileUtil();
+                        row.setProperty(MobileConst.leaveType, mu.getOpionValue("app_fd_wowprime_leave_type", "c_type", "id", row.getProperty(MobileConst.leaveType)));
+                    }
                     map = new HashMap(row);
                 } else {
                     map = new HashMap();

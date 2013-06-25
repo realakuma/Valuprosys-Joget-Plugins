@@ -45,6 +45,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.joget.directory.dao.UserDao;
+import org.joget.directory.model.Employment;
+import org.joget.directory.model.User;
 
 /**
  *
@@ -57,6 +60,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class mobileWorkflowApi extends DefaultApplicationPlugin implements PluginWebSupport {
     //private DirectoryManager directoryManager;
     //private WorkflowUserManager workflowUserManager;
+
+    private UserDao userDao;
+    private User userClass;
 
     @Override
     public void webService(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -82,6 +88,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             //Service bean
             AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
             WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
+            userDao = (UserDao) AppUtil.getApplicationContext().getBean("userDao");
             FormService formService;
 
 
@@ -315,16 +322,18 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
         }
         if (listType.equals("pending")) {
-            assignmentList = workflowManager.getAssignmentPendingList(null, "dateCreated", true, null, MobileConst.getrows);
+            assignmentList = workflowManager.getAssignmentPendingAndAcceptedList(null, null, null, "dateCreated", true, null, MobileConst.getrows);
 
         }
         if (listType.equals("accepted")) {
-            assignmentList = workflowManager.getAssignmentAcceptedList(null, null, null, null, MobileConst.getrows);
+            assignmentList = workflowManager.getAssignmentAcceptedList(null, "dateCreated", true, null, MobileConst.getrows);
 
         }
 
         Integer total = assignmentList.getTotal();
         JSONObject jsonObject = new JSONObject();
+
+
 
         for (WorkflowAssignment assignment : assignmentList) {
 
@@ -333,12 +342,20 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
             WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
             Map data = new HashMap();
+            userClass = userDao.getUserById(workflowProcess.getRequesterId());
+
+            Collection<Employment> employments = userClass.getEmployments();
+
+            //get only 1st employment record, currently only support 1 employment per user
+            Employment employment = employments.iterator().next();
+            
             data.put("processId", assignment.getProcessId());
             data.put("activityId", assignment.getActivityId());
             data.put("processName", assignment.getProcessName());
             data.put("activityName", assignment.getActivityName());
             data.put("processVersion", assignment.getProcessVersion());
-            data.put("requestor", workflowProcess.getRequesterId());
+            data.put("requestor", userClass.getFirstName());
+            data.put("department", employment.getDepartment().getName());
             data.put("dateCreated", assignment.getDateCreated());
             data.put("acceptedStatus", assignment.isAccepted());
             data.put("due", assignment.getDueDate() != null ? assignment.getDueDate() : "-");
@@ -350,11 +367,11 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("id", assignment.getActivityId());
             data.put("label", assignment.getActivityName());
             data.put("description", assignment.getDescription());
-            if (!assignment.getProcessName().contains("费用报销") && !assignment.getProcessName().contains("请购")) {
+            if (!assignment.getProcessName().contains("费用报销") && !assignment.getProcessName().contains("请购")&& !assignment.getProcessName().contains("加班")) {
                 row = mu.getFormDataByActivityId(assignment.getActivityId());
             }
             if (row != null) {
-                data.put("application_type", row.getProperty(MobileConst.leaveType));
+                data.put("application_type", mu.getOpionValue("app_fd_wowprime_leave_type", "c_type", "id", row.getProperty(MobileConst.leaveType)));
             } else {
                 /*to do 以下部分应该必成从form上去*/
                 if (assignment.getProcessName().contains("费用报销")) {
@@ -364,8 +381,8 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                 if (assignment.getProcessName().contains("请购")) {
                     data.put("application_type", "请购");
                 }
-                
-                 if (assignment.getProcessName().contains("加班")) {
+
+                if (assignment.getProcessName().contains("加班")) {
                     data.put("application_type", "加班");
                 }
 

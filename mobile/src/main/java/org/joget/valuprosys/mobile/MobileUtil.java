@@ -4,10 +4,15 @@
  */
 package org.joget.valuprosys.mobile;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import javax.sql.DataSource;
 import org.joget.apps.app.model.AppDefinition;
 import org.joget.apps.app.model.PackageActivityForm;
 import org.joget.apps.app.service.AppService;
@@ -28,6 +33,8 @@ import org.joget.apps.app.model.EnvironmentVariable;
  */
 public class MobileUtil {
 
+    Connection conn = null;
+    // retrieve connection from the default datasource
     AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
     WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
     FormService formService = (FormService) AppUtil.getApplicationContext().getBean("formService");
@@ -91,5 +98,44 @@ public class MobileUtil {
         env.setValue(envVarValue);
         environmentVariableDao.update(env);
 
+    }
+
+    public String getOpionValue(String tableName, String nameColumn, String valueColumn, String value){
+        String result = "";
+
+        try {
+            // retrieve connection from the default datasource
+            DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+            conn = ds.getConnection();
+            // execute SQL query
+            if (!conn.isClosed()) {
+                String sql = "select " + nameColumn + " from " + tableName + " where 1=1";
+                ResultSet rs = null;
+                PreparedStatement preStat = null;
+
+                if (value != null && !value.equals("")) {
+                    sql += " AND " + valueColumn + "='" + value + "'";
+                }
+
+                preStat = conn.prepareStatement(sql);
+                rs = preStat.executeQuery();
+                while (rs.next()) {
+                    result = rs.getString(1);
+                }
+            }
+
+            //PreparedStatement stmt = conn.prepareStatement("UPDATE formdata_simpleflow set c_status='#assignment.activityId#' WHERE processId='#assignment.processId#'"); 
+            //stmt.execute();
+        } catch (Exception e) {
+            System.err.println("Exception: " + e.getMessage());
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+            }
+        }
+        return result;
     }
 }
