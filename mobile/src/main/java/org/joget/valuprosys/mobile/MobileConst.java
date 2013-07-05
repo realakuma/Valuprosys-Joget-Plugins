@@ -26,5 +26,7 @@ public class MobileConst {
     public static String subFormPoDetailUrl="custom_jw/product_subfrom.jsp?id=";
     public static String subFormFeeDetail="subform_fee_detail";
     public static String subFormFeeDetailUrl="custom_jw/expense_subfrom.jsp?id=";
+    public static String Andriod="Andriod";
+    public static String IOS="IOS";
     
 }

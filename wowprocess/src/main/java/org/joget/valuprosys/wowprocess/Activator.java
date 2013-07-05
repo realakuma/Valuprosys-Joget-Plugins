@@ -14,7 +14,9 @@ public class Activator implements BundleActivator {
         registrationList = new ArrayList<ServiceRegistration>();
 
         //Register plugin here
-        registrationList.add(context.registerService(cxoApprove.class.getName(), new cxoApprove(), null));
+        //registrationList.add(context.registerService(cxoApprove.class.getName(), new cxoApprove(), null));
+        registrationList.add(context.registerService(DatabaseUpdateTool.class.getName(), new DatabaseUpdateTool(), null));
+        //registrationList.add(context.registerService(FormGrid.class.getName(), new FormGrid(), null));
     }
 
     public void stop(BundleContext context) {

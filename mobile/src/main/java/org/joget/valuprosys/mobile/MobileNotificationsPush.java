@@ -17,6 +17,7 @@ import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.workflow.model.WorkflowAssignment;
 import cn.jpush.api.JPushClient;
+import cn.jpush.api.DeviceEnum;
 
 import org.joget.apps.app.dao.EnvironmentVariableDao;
 import org.joget.directory.dao.UserDao;
@@ -90,20 +91,52 @@ public class MobileNotificationsPush extends DefaultApplicationPlugin {
 
             for (Mobile tm : mobiles) {
                 MobileUtil mu = new MobileUtil();
-                JPushClient jpush = new JPushClient(masterSecret, appKey);
+                
                 LogUtil.info("userId:", tm.getUserId());
                 LogUtil.info("deviceNo:", tm.getDeviceNo());
                 if (wfAssignment.getProcessName().contains("请假")) {
-                    jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + mu.getOpionValue("app_fd_wowprime_leave_type", "c_type", "id", row.getProperty(MobileConst.leaveType)));
+                    if (tm.getDeviceType().equals(MobileConst.Andriod)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.Android);
+                        jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + mu.getOpionValue("app_fd_wowprime_leave_type", "c_type", "id", row.getProperty(MobileConst.leaveType)));
+                    }
+                    if (tm.getDeviceType().equals(MobileConst.IOS)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.IOS);
+                        jpush.sendNotificationWithAlias(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + mu.getOpionValue("app_fd_wowprime_leave_type", "c_type", "id", row.getProperty(MobileConst.leaveType)));
+
+                    }
                 }
                 if (wfAssignment.getProcessName().contains("加班")) {
-                    jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "加班");
+                    if (tm.getDeviceType() .equals(MobileConst.Andriod)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.Android);
+                        jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "加班");
+                    }
+                    if (tm.getDeviceType().equals(MobileConst.IOS)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.IOS);
+                        jpush.sendNotificationWithAlias(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "加班");
+
+                    }
                 }
                 if (wfAssignment.getProcessName().contains("费用")) {
-                    jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "费用报销");
+                    if (tm.getDeviceType().equals(MobileConst.Andriod)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.Android);
+                        jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "费用报销");
+                    }
+                    if (tm.getDeviceType() .equals(MobileConst.IOS)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.IOS);
+                        jpush.sendNotificationWithAlias(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "费用报销");
+
+                    }
                 }
                 if (wfAssignment.getProcessName().contains("请购")) {
-                    jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "请购");
+                    if (tm.getDeviceType().equals(MobileConst.Andriod)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.Android);
+                        jpush.sendNotificationWithTag(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "请购");
+                    }
+                    if (tm.getDeviceType() .equals(MobileConst.IOS)) {
+                        JPushClient jpush = new JPushClient(masterSecret, appKey,DeviceEnum.IOS);
+                        jpush.sendNotificationWithAlias(Integer.parseInt(sendNo), tm.getDeviceNo(), "来自" + employment.getDepartment().getName() + "的" + userClass.getFirstName() + "的审批请求", "申请类型:" + "请购");
+
+                    }
                 }
                 //sendNo++
                 MobileUtil.setEnvVar("sendNo", String.valueOf(Integer.parseInt(sendNo) + 1), appDef, environmentVariableDao);

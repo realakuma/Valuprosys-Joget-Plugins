@@ -147,7 +147,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
     protected String getApprovmentHistoryList(String processId, AppService appService, WorkflowManager workflowManager) throws IOException, JSONException {
 
         Collection<WorkflowActivity> activityList = workflowManager.getActivityList(processId, null, MobileConst.getrows, null, null);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Integer total = 0;
         JSONObject jsonObject = new JSONObject();
         for (WorkflowActivity workflowActivity : activityList) {
@@ -342,6 +342,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
             WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
             Map data = new HashMap();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             userClass = userDao.getUserById(workflowProcess.getRequesterId());
 
             Collection<Employment> employments = userClass.getEmployments();
@@ -356,7 +357,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("processVersion", assignment.getProcessVersion());
             data.put("requestor", userClass.getFirstName());
             data.put("department", employment.getDepartment().getName());
-            data.put("dateCreated", assignment.getDateCreated());
+            data.put("dateCreated", dateFormat.format(assignment.getDateCreated()));
             data.put("acceptedStatus", assignment.isAccepted());
             data.put("due", assignment.getDueDate() != null ? assignment.getDueDate() : "-");
 
