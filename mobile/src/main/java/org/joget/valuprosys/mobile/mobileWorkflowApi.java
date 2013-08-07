@@ -227,6 +227,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
     protected String completeWithVariable(HttpServletRequest request, String activityId, AppService appService, WorkflowManager workflowManager) throws IOException, JSONException {
 
         WorkflowAssignment assignment = workflowManager.getAssignment(activityId);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
 
         //Setting Approve INFO
@@ -269,8 +270,18 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                     while (it.hasNext()) {
                         //Setting approvment INFO
                         Map.Entry<String, String> entry = it.next();
-                        row.setProperty(entry.getKey(), entry.getValue());
+                      
+                            row.setProperty(entry.getKey(), entry.getValue());
+                      
                     }
+                    //setting approve time
+                    try
+                    {
+                           Date currentDate = new Date();
+                            row.setProperty(formDefId+"_time", dateFormat.format(currentDate));
+                    }
+                    catch(Exception ex)
+                    {}
                     // save to form
                     appService.storeFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, rowSet, id);
                 }
@@ -363,10 +374,8 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("activityName", assignment.getActivityName());
             data.put("processVersion", assignment.getProcessVersion());
             if (userClass != null) {
-            data.put("requestor", userClass.getFirstName());
-            }
-            else
-            {
+                data.put("requestor", userClass.getFirstName());
+            } else {
                 data.put("requestor", "");
             }
             if (employment != null) {
