@@ -151,6 +151,8 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
         Integer total = 0;
         JSONObject jsonObject = new JSONObject();
         for (WorkflowActivity workflowActivity : activityList) {
+            
+            
             WorkflowActivity activityInfo = workflowManager.getRunningActivityInfo(workflowActivity.getId());
             //userList = workflowManager.getAssignmentResourceIds(workflowActivity.getProcessDefId(), workflowActivity.getProcessId(), workflowActivity.getId());
             if (activityInfo.getNameOfAcceptedUser() != null) {
@@ -187,7 +189,15 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                     Map.Entry<String, String> entry = it.next();
                     if (entry.getKey().toString().indexOf(formDefId) != -1) {
                         if (entry.getKey().toString().equals(formDefId + MobileConst.Approver)) {
-                            data.put("Assignee", entry.getValue());
+                            userClass = userDao.getUserById(entry.getValue());
+                            if (userClass!=null)
+                            {
+                                data.put("Assignee", userClass.getFirstName());
+                            }else
+                            {
+                                 data.put("Assignee", entry.getValue());
+                            }
+                            
                         } else if (entry.getKey().toString().equals(formDefId + MobileConst.Comment)) {
                             data.put("Comment", entry.getValue());
                         } else {
