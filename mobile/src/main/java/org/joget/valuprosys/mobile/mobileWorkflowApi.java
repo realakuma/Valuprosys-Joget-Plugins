@@ -109,7 +109,8 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                 response.getWriter().write(result);
             }
         } catch (Exception e) {
-            System.err.println("[{\"Exception\":" + "\"" + e.getMessage() + "\"}]");
+            //System.err.println("[{\"Exception\":" + "\"" + e.getMessage() + "\"}]");
+            e.printStackTrace();
         }
     }
 
@@ -344,24 +345,35 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
             MobileUtil mu = new MobileUtil();
             FormRow row = null;
-
+            Collection<Employment> employments = null;
+             Employment employment=null;
             WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
             Map data = new HashMap();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             userClass = userDao.getUserById(workflowProcess.getRequesterId());
-
-            Collection<Employment> employments = userClass.getEmployments();
-
+            if (userClass != null) {
+                employments = userClass.getEmployments();
+            }
             //get only 1st employment record, currently only support 1 employment per user
-            Employment employment = employments.iterator().next();
+            if (employments != null) {
+                 employment = employments.iterator().next();
+            }
 
             data.put("processId", assignment.getProcessId());
             data.put("activityId", assignment.getActivityId());
             data.put("processName", assignment.getProcessName());
             data.put("activityName", assignment.getActivityName());
             data.put("processVersion", assignment.getProcessVersion());
-            data.put("requestor", userClass.getFirstName());
-            data.put("department", employment.getDepartment().getName());
+            if (userClass != null) {
+                data.put("requestor", userClass.getFirstName());
+            } else {
+                data.put("requestor", "");
+            }
+            if (employment != null) {
+                data.put("department", employment.getDepartment().getName());
+            } else {
+                data.put("department", "");
+            }
             data.put("dateCreated", dateFormat.format(assignment.getDateCreated()));
             data.put("acceptedStatus", assignment.isAccepted());
             data.put("due", assignment.getDueDate() != null ? assignment.getDueDate() : "-");
