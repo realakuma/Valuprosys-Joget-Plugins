@@ -187,7 +187,12 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                     Map.Entry<String, String> entry = it.next();
                     if (entry.getKey().toString().indexOf(formDefId) != -1) {
                         if (entry.getKey().toString().equals(formDefId + MobileConst.Approver)) {
-                            data.put("Assignee", entry.getValue());
+                            userClass = userDao.getUserById(entry.getValue());
+                            if (userClass != null) {
+                                data.put("Assignee", userClass.getFirstName());
+                            } else {
+                                data.put("Assignee", entry.getValue());
+                            }
                         } else if (entry.getKey().toString().equals(formDefId + MobileConst.Comment)) {
                             data.put("Comment", entry.getValue());
                         } else {
@@ -349,7 +354,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
             //get only 1st employment record, currently only support 1 employment per user
             Employment employment = employments.iterator().next();
-            
+
             data.put("processId", assignment.getProcessId());
             data.put("activityId", assignment.getActivityId());
             data.put("processName", assignment.getProcessName());
@@ -368,7 +373,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("id", assignment.getActivityId());
             data.put("label", assignment.getActivityName());
             data.put("description", assignment.getDescription());
-            if (!assignment.getProcessName().contains("费用报销") && !assignment.getProcessName().contains("请购")&& !assignment.getProcessName().contains("加班")) {
+            if (!assignment.getProcessName().contains("费用报销") && !assignment.getProcessName().contains("请购") && !assignment.getProcessName().contains("加班")) {
                 row = mu.getFormDataByActivityId(assignment.getActivityId());
             }
             if (row != null) {
