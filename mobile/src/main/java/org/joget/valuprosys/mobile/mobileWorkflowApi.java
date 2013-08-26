@@ -234,7 +234,9 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
     protected String completeWithVariable(HttpServletRequest request, String activityId, AppService appService, WorkflowManager workflowManager) throws IOException, JSONException {
 
         WorkflowAssignment assignment = workflowManager.getAssignment(activityId);
-
+        FormRowSet rowSet = null;
+        String formDefId = "";
+        MobileUtil mu=new MobileUtil();
 
         //Setting Approve INFO
         if (assignment != null) {
@@ -242,46 +244,64 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             String activityDefId = assignment.getActivityDefId();
             String processId = assignment.getProcessId();
             AppDefinition appDef = appService.getAppDefinitionForWorkflowProcess(processId);
+
+
+            /*
+             //String formDefId = activityForm.getFormId();
+             if (assignment.getProcessName().contains("费用报销")) {
+             formDefId = "app_fd_wowprime_expense_approval";
+             }
+             if (assignment.getProcessName().contains("请购")) {
+             formDefId = "app_fd_wowprime_product_approval";
+             }
+             */
+            //if (!assignment.getProcessName().contains("请购") || !assignment.getProcessName().contains("费用报销")) {
             PackageActivityForm activityForm = appService.retrieveMappedForm(appDef.getAppId(), appDef.getVersion().toString(), processDefId, activityDefId);
+            formDefId = activityForm.getFormId();
+            //}
 
-            if (activityForm != null) {
-                String formDefId = activityForm.getFormId();
+            String id = appService.getOriginProcessId(processId);
 
-                String id = appService.getOriginProcessId(processId);
+            //FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
 
-                FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
+            
+             FormRow row = null;
 
-                FormRow row = null;
+             if (rowSet == null || rowSet.isEmpty()) {
+             Date currentDate = new Date();
+             if (rowSet == null) {
+             rowSet = new FormRowSet();
+             }
+             row = new FormRow();
+             row.setId(id);
+             row.setDateModified(currentDate);
+             row.setDateCreated(currentDate);
+             rowSet.add(row);
 
-                if (rowSet == null || rowSet.isEmpty()) {
-                    Date currentDate = new Date();
-                    if (rowSet == null) {
-                        rowSet = new FormRowSet();
+             }
+             
+            Map<String, String> workflowApproveINFO = MobileUtil.retrieveApproveINFOFromRequest(request, formDefId);
+
+
+            if (rowSet != null && !rowSet.isEmpty()) {
+                row = rowSet.get(0);
+
+                Iterator<Map.Entry<String, String>> it = workflowApproveINFO.entrySet().iterator();
+                while (it.hasNext()) {
+                    //Setting approvment INFO
+                    Map.Entry<String, String> entry = it.next();
+                    mu.setFormData(id, formDefId, entry.getKey(), entry.getValue(),"TEXT");
+                    //设置审批人ID
+                    if (entry.getKey().equals(formDefId + MobileConst.Approver)) {
+                        row.setProperty(entry.getKey(), workflowManager.getWorkflowUserManager().getCurrentUsername());
                     }
-                    row = new FormRow();
-                    row.setId(id);
-                    row.setDateModified(currentDate);
-                    row.setDateCreated(currentDate);
-                    rowSet.add(row);
-
                 }
-
-                Map<String, String> workflowApproveINFO = MobileUtil.retrieveApproveINFOFromRequest(request, formDefId);
-
-
-                if (rowSet != null && !rowSet.isEmpty()) {
-                    row = rowSet.get(0);
-
-                    Iterator<Map.Entry<String, String>> it = workflowApproveINFO.entrySet().iterator();
-                    while (it.hasNext()) {
-                        //Setting approvment INFO
-                        Map.Entry<String, String> entry = it.next();
-                        row.setProperty(entry.getKey(), entry.getValue());
-                    }
-                    // save to form
-                    appService.storeFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, rowSet, id);
-                }
+                 mu.setFormData(id, formDefId, "DateModified", "","DATE");
+                 mu.setFormData(id, formDefId, "DateCreated", "","DATE");
+                // save to form
+                //appService.storeFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, rowSet, id);
             }
+
         }
 
 
@@ -413,11 +433,11 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
                     DecimalFormat myformat1 = new DecimalFormat("###,###.00");
                     String amount = "";
                     try {
-                        amount = myformat1.format(Double.parseDouble( mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_totalprice", "productId")));
+                        amount = myformat1.format(Double.parseDouble(mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_totalprice", "productId")));
                     } catch (Exception ex) {
                     }
                     data.put("order_no", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_jdeExpenseNo", "productId"));
-                    data.put("order_price",amount);
+                    data.put("order_price", amount);
                     data.put("company_name", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_companyName", "productId"));
                     data.put("application_type", "请购");
 

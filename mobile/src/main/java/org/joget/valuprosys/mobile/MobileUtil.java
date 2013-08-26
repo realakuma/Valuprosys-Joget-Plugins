@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -138,8 +139,8 @@ public class MobileUtil {
         }
         return result;
     }
-    
-       public String getColumnValue(String processId,String tableName, String tableName2,String nameColumn, String connectColumn) {
+
+    public String getColumnValue(String processId, String tableName, String tableName2, String nameColumn, String connectColumn) {
         String result = "";
         ResultSet rs = null;
         PreparedStatement preStat = null;
@@ -150,7 +151,7 @@ public class MobileUtil {
             conn = ds.getConnection();
             // execute SQL query
             if (!conn.isClosed()) {
-                String sql = "select T1." + nameColumn + " from " + tableName +" T1 ,"+tableName2+" T2 where 1=1 and T1.ID=T2."+connectColumn+" and T2.ID='"+processId+"'";
+                String sql = "select T1." + nameColumn + " from " + tableName + " T1 ," + tableName2 + " T2 where 1=1 and T1.ID=T2." + connectColumn + " and T2.ID='" + processId + "'";
 
                 preStat = conn.prepareStatement(sql);
                 rs = preStat.executeQuery();
@@ -175,8 +176,8 @@ public class MobileUtil {
         }
         return result;
     }
-       
-         public String getFormMetaData(String appId,String appVersion, String formDefId) {
+
+    public String getFormMetaData(String appId, String appVersion, String formDefId) {
         String result = "";
         ResultSet rs = null;
         PreparedStatement preStat = null;
@@ -187,7 +188,7 @@ public class MobileUtil {
             conn = ds.getConnection();
             // execute SQL query
             if (!conn.isClosed()) {
-                String sql = "select json from app_form where 1=1 and appid='"+appId+"' and appversion='"+appVersion+"' and formId='"+formDefId+"'";
+                String sql = "select json from app_form where 1=1 and appid='" + appId + "' and appversion='" + appVersion + "' and formId='" + formDefId + "'";
 
                 preStat = conn.prepareStatement(sql);
                 rs = preStat.executeQuery();
@@ -211,5 +212,48 @@ public class MobileUtil {
             }
         }
         return result;
+    }
+     public boolean setFormData(String Id,String formDefId,String columnName,String columnValue,String valueType) {
+   
+        PreparedStatement preStat = null;
+
+        try {
+            // retrieve connection from the default datasource
+            DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
+            conn = ds.getConnection();
+            Date currentDate = new Date();
+            java.sql.Date sqlDate=new java.sql.Date(currentDate.getTime());
+            // execute SQL query
+            if (!conn.isClosed()) {
+                String sql = "update "+formDefId+" set columnName= ?  where id="+Id;
+
+                preStat = conn.prepareStatement(sql);
+                if (valueType.equals("Date"))
+                {
+                   preStat.setDate(1,sqlDate);
+                }
+                else
+                {
+                    preStat.setString(1, columnValue);
+                }
+                preStat.executeQuery();
+                conn.commit();
+              
+            }
+
+            //PreparedStatement stmt = conn.prepareStatement("UPDATE formdata_simpleflow set c_status='#assignment.activityId#' WHERE processId='#assignment.processId#'"); 
+            //stmt.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (conn != null) {
+                    preStat.close();;
+                    conn.close();
+                }
+            } catch (SQLException e) {
+            }
+        }
+        return true;
     }
 }
