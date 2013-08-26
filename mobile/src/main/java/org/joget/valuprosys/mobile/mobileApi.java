@@ -3,6 +3,7 @@ package org.joget.valuprosys.mobile;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,9 +34,16 @@ import org.json.JSONException;
 import org.springframework.context.ApplicationContext;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONArray;
+import org.joget.directory.dao.UserDao;
+import org.joget.directory.model.Employment;
+import org.joget.directory.model.User;
+import org.joget.workflow.model.WorkflowProcess;
 
 public class mobileApi extends DefaultApplicationPlugin
         implements PluginWebSupport {
+
+    private UserDao userDao;
+    private User userClass;
 
     public void webService(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -58,6 +66,7 @@ public class mobileApi extends DefaultApplicationPlugin
             AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
             WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
             FormService formService = (FormService) AppUtil.getApplicationContext().getBean("formService");
+            userDao = (UserDao) AppUtil.getApplicationContext().getBean("userDao");
 
             WorkflowAssignment assignment = null;
             Map fData = null;
@@ -68,6 +77,8 @@ public class mobileApi extends DefaultApplicationPlugin
 
             PackageActivityForm activityForm = null;
             FormData formData = new FormData();
+            String temp_result = "";
+            MobileUtil mu = new MobileUtil();
 
             if ((activityId != null) && (!activityId.trim().isEmpty())) {
                 assignment = workflowManager.getAssignment(activityId);
@@ -75,17 +86,23 @@ public class mobileApi extends DefaultApplicationPlugin
 
             if (assignment != null) {
 
-                activityForm = appService.viewAssignmentForm(appDef, assignment, formData, "");
-                form = activityForm.getForm();
-                if (formDefId.equals("")) {
-                    formDefId = activityForm.getFormId();
-                }
-                process_name = assignment.getProcessName();
+                activityForm = appService.retrieveMappedForm(appDef.getAppId(), appDef.getVersion().toString(), assignment.getProcessDefId(), assignment.getActivityDefId());
+                formDefId = activityForm.getFormId();
 
+
+                /*
+                 activityForm = appService.viewAssignmentForm(appDef, assignment, formData, "");
+                 form = activityForm.getForm();
+                 if (formDefId.equals("")) {
+                 formDefId = activityForm.getFormId();
+                 }
+                 */
+                process_name = assignment.getProcessName();
+                temp_result = mu.getFormMetaData(appDef.getAppId(), appDef.getVersion().toString(), formDefId);
             }
 
 
-            String temp_result = formService.generateElementJson(form);
+            /* String temp_result = formService.generateElementJson(form);*/
             if ((dataType.equals("meta")) || (dataType.equals("all"))) {
                 //temp_result = formService.generateElementJson(form);
 
@@ -121,8 +138,7 @@ public class mobileApi extends DefaultApplicationPlugin
 
 
                 if (row != null) {
-                    if (process_name.contains("请假")) {
-                        MobileUtil mu = new MobileUtil();
+                    if (process_name.contains("请假") || process_name.contains("加班")) {
                         row.setProperty(MobileConst.leaveType, mu.getOpionValue("app_fd_wowprime_leave_type", "c_type", "id", row.getProperty(MobileConst.leaveType)));
                     }
                     map = new HashMap(row);
@@ -146,33 +162,88 @@ public class mobileApi extends DefaultApplicationPlugin
 
                 // setting po sub_form link
                 if (process_name.contains("请购")) {
+                    Collection<Employment> employments = null;
+                    Employment employment = null;
+                    WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
+                    userClass = userDao.getUserById(workflowProcess.getRequesterId());
+
+                    if (userClass != null) {
+                        map.put("requestor", userClass.getFirstName());
+
+                        map.put(formDefId + MobileConst.Approver, userClass.getFirstName());
+                    } else {
+                        map.put("requestor", "");
+                    }
+
+                    map.put("order_no", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_jdeExpenseNo", "productId"));
+                     DecimalFormat myformat1 = new DecimalFormat("###,###.00");
+                    String amount="";
+                    try
+                    {
+                        amount=myformat1.format(Double.parseDouble(mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_expense", "app_fd_wowprime_expense_approval", "c_totalprice", "c_expenseId")));
+                    }catch(Exception ex)
+                    {
+                        
+                    }
+                    map.put("order_price", amount);
+                    map.put("company_name", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_companyName", "productId"));
+                    map.put("application_type", "请购");
                     map.put(MobileConst.subFormPoDetail, basePath + MobileConst.subFormPoDetailUrl + map.get("productId").toString());
                 }
 
                 if (process_name.contains("费用报销")) {
+                    Collection<Employment> employments = null;
+                    Employment employment = null;
+                    WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
+                    userClass = userDao.getUserById(workflowProcess.getRequesterId());
+
+                    if (userClass != null) {
+                        map.put("requestor", userClass.getFirstName());
+                        userClass = userDao.getUserById(workflowManager.getWorkflowUserManager().getCurrentUsername());
+                        map.put(formDefId + MobileConst.Approver, userClass.getFirstName());
+                    } else {
+                        map.put("requestor", "");
+                    }
+                    map.put("order_no", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_expense", "app_fd_wowprime_expense_approval", "c_jdeExpenseNo", "c_expenseId"));
+                    DecimalFormat myformat1 = new DecimalFormat("###,###.00");
+                    String amount="";
+                    try
+                    {
+                        amount=myformat1.format(Double.parseDouble(mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_expense", "app_fd_wowprime_expense_approval", "c_totalprice", "c_expenseId")));
+                    }catch(Exception ex)
+                    {
+                        
+                    }
+                    map.put("order_price", amount);
+                    map.put("application_type", "费用报销");
                     map.put(MobileConst.subFormFeeDetail, basePath + MobileConst.subFormFeeDetailUrl + map.get("expenseId").toString());
                 }
+
+                if (process_name.contains("请假") || process_name.contains("加班")) {
+                    userClass = userDao.getUserById(workflowManager.getWorkflowUserManager().getCurrentUsername());
+                    map.put(formDefId + MobileConst.Approver, userClass.getFirstName());
+                }
                 /*
-                //Element sub_form = FormUtil.findElement(MobileConst.subFormPoDetail, form, formData);
-                if (sub_form != null) {
-                map.put(MobileConst.subFormPoDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("productFormId").toString());
-                JSONObject jsonobject=JSONObject.fromObject(temp_result);
-                jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
-                temp_result=jsonobject.toString();
+                 //Element sub_form = FormUtil.findElement(MobileConst.subFormPoDetail, form, formData);
+                 if (sub_form != null) {
+                 map.put(MobileConst.subFormPoDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("productFormId").toString());
+                 JSONObject jsonobject=JSONObject.fromObject(temp_result);
+                 jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
+                 temp_result=jsonobject.toString();
                 
-                }
+                 }
                 
-                sub_form = FormUtil.findElement(MobileConst.subFormFeeDetail, form, formData);
-                // setting fee sub_form link
-                if (sub_form != null) {
-                map.put(MobileConst.subFormFeeDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("expenseId").toString());
-                JSONObject jsonobject=JSONObject.fromObject(temp_result);
-                jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
-                temp_result=jsonobject.toString();
-                }
+                 sub_form = FormUtil.findElement(MobileConst.subFormFeeDetail, form, formData);
+                 // setting fee sub_form link
+                 if (sub_form != null) {
+                 map.put(MobileConst.subFormFeeDetail, basePath+MobileConst.subFormPoDetailUrl+map.get("expenseId").toString());
+                 JSONObject jsonobject=JSONObject.fromObject(temp_result);
+                 jsonobject.getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(0).getJSONArray("elements").getJSONObject(1).remove("elements");
+                 temp_result=jsonobject.toString();
+                 }
                  */
                 //setting current approver
-                map.put(formDefId + MobileConst.Approver, workflowManager.getWorkflowUserManager().getCurrentUsername());
+                //map.put(formDefId + MobileConst.Approver, workflowManager.getWorkflowUserManager().getCurrentUsername());
 
                 if (dataType.equals("all")) {
                     result = "{\"meta\":[" + temp_result + "]," + "\"data\":[" + JsonUtil.generatePropertyJsonObject(map).toString() + "]}";
@@ -193,7 +264,7 @@ public class mobileApi extends DefaultApplicationPlugin
                 response.getWriter().write(result);
             }
         } catch (Exception e) {
-            System.err.println("[{\"Exception\":\"" + e.getMessage() + "\"}]");
+            e.printStackTrace();
         }
     }
 

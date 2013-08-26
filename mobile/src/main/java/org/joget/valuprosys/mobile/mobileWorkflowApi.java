@@ -6,6 +6,7 @@ package org.joget.valuprosys.mobile;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -346,7 +347,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             MobileUtil mu = new MobileUtil();
             FormRow row = null;
             Collection<Employment> employments = null;
-             Employment employment=null;
+            Employment employment = null;
             WorkflowProcess workflowProcess = workflowManager.getRunningProcessById(assignment.getProcessId());
             Map data = new HashMap();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
@@ -356,7 +357,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             }
             //get only 1st employment record, currently only support 1 employment per user
             if (employments != null) {
-                 employment = employments.iterator().next();
+                employment = employments.iterator().next();
             }
 
             data.put("processId", assignment.getProcessId());
@@ -377,32 +378,56 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
             data.put("dateCreated", dateFormat.format(assignment.getDateCreated()));
             data.put("acceptedStatus", assignment.isAccepted());
             data.put("due", assignment.getDueDate() != null ? assignment.getDueDate() : "-");
+            /*
+             double serviceLevelMonitor = workflowManager.getServiceLevelMonitorForRunningActivity(assignment.getActivityId());
 
-            double serviceLevelMonitor = workflowManager.getServiceLevelMonitorForRunningActivity(assignment.getActivityId());
-
-            data.put("serviceLevelMonitor", WorkflowUtil.getServiceLevelIndicator(serviceLevelMonitor));
-
+             data.put("serviceLevelMonitor", WorkflowUtil.getServiceLevelIndicator(serviceLevelMonitor));
+             */
             data.put("id", assignment.getActivityId());
             data.put("label", assignment.getActivityName());
             data.put("description", assignment.getDescription());
             if (!assignment.getProcessName().contains("费用报销") && !assignment.getProcessName().contains("请购") && !assignment.getProcessName().contains("加班")) {
+                //if (!assignment.getProcessName().contains("请购") && !assignment.getProcessName().contains("加班")) {
                 row = mu.getFormDataByActivityId(assignment.getActivityId());
+
             }
             if (row != null) {
+
                 data.put("application_type", mu.getOpionValue("app_fd_wowprime_leave_type", "c_type", "id", row.getProperty(MobileConst.leaveType)));
+
+
             } else {
-                /*to do 以下部分应该必成从form上去*/
+
                 if (assignment.getProcessName().contains("费用报销")) {
+                    data.put("order_no", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_expense", "app_fd_wowprime_expense_approval", "c_jdeExpenseNo", "c_expenseId"));
+                    DecimalFormat myformat1 = new DecimalFormat("###,###.00");
+                    String amount = "";
+                    try {
+                        amount = myformat1.format(Double.parseDouble(mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_expense", "app_fd_wowprime_expense_approval", "c_totalprice", "c_expenseId")));
+                    } catch (Exception ex) {
+                    }
+                    data.put("order_price", amount);
                     data.put("application_type", "费用报销");
-                }
-
-                if (assignment.getProcessName().contains("请购")) {
+                    data.put("company_name", "");
+                } else if (assignment.getProcessName().contains("请购")) {
+                    DecimalFormat myformat1 = new DecimalFormat("###,###.00");
+                    String amount = "";
+                    try {
+                        amount = myformat1.format(Double.parseDouble( mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_totalprice", "productId")));
+                    } catch (Exception ex) {
+                    }
+                    data.put("order_no", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_jdeExpenseNo", "productId"));
+                    data.put("order_price",amount);
+                    data.put("company_name", mu.getColumnValue(assignment.getProcessId(), "app_fd_wowprime_product", "app_fd_wowprime_product_approval", "c_companyName", "productId"));
                     data.put("application_type", "请购");
-                }
 
-                if (assignment.getProcessName().contains("加班")) {
+                } else if (assignment.getProcessName().contains("加班")) {
+                    data.put("order_no", "");
+                    data.put("order_price", "");
+                    data.put("company_name", "");
                     data.put("application_type", "加班");
                 }
+
 
             }
             jsonObject.accumulate("data", data);
