@@ -236,7 +236,7 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
         WorkflowAssignment assignment = workflowManager.getAssignment(activityId);
         FormRowSet rowSet = null;
         String formDefId = "";
-        MobileUtil mu=new MobileUtil();
+        MobileUtil mu = new MobileUtil();
 
         //Setting Approve INFO
         if (assignment != null) {
@@ -264,41 +264,50 @@ public class mobileWorkflowApi extends DefaultApplicationPlugin implements Plugi
 
             //FormRowSet rowSet = appService.loadFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, id);
 
-            
-             FormRow row = null;
 
-             if (rowSet == null || rowSet.isEmpty()) {
-             Date currentDate = new Date();
-             if (rowSet == null) {
-             rowSet = new FormRowSet();
-             }
-             row = new FormRow();
-             row.setId(id);
-             row.setDateModified(currentDate);
-             row.setDateCreated(currentDate);
-             rowSet.add(row);
+            FormRow row = null;
+            Date currentDate = new Date();
+            if (rowSet == null || rowSet.isEmpty()) {
 
-             }
-             
+                if (rowSet == null) {
+                    rowSet = new FormRowSet();
+                }
+                row = new FormRow();
+                row.setId(id);
+                row.setDateModified(currentDate);
+                row.setDateCreated(currentDate);
+                rowSet.add(row);
+
+            }
+
             Map<String, String> workflowApproveINFO = MobileUtil.retrieveApproveINFOFromRequest(request, formDefId);
 
 
             if (rowSet != null && !rowSet.isEmpty()) {
                 row = rowSet.get(0);
-
+                //setting approve time
+                SimpleDateFormat dateformat1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                row.setProperty(formDefId + "_time", dateformat1.format(currentDate));
+                mu.setFormData(appDef.getAppId(), appDef.getVersion().toString(), id, formDefId, formDefId + "_time", dateformat1.format(currentDate), "TEXT");
                 Iterator<Map.Entry<String, String>> it = workflowApproveINFO.entrySet().iterator();
                 while (it.hasNext()) {
                     //Setting approvment INFO
                     Map.Entry<String, String> entry = it.next();
-                    mu.setFormData(id, formDefId, entry.getKey(), entry.getValue(),"TEXT");
+                    //mu.setFormData(id, formDefId, entry.getKey(), entry.getValue(),"TEXT");
+                    row.setProperty(entry.getKey(), entry.getValue());
+                    mu.setFormData(appDef.getAppId(), appDef.getVersion().toString(), id, formDefId, entry.getKey(), entry.getValue(), "TEXT");
                     //设置审批人ID
                     if (entry.getKey().equals(formDefId + MobileConst.Approver)) {
                         row.setProperty(entry.getKey(), workflowManager.getWorkflowUserManager().getCurrentUsername());
+                        mu.setFormData(appDef.getAppId(), appDef.getVersion().toString(), id, formDefId, entry.getKey(), workflowManager.getWorkflowUserManager().getCurrentUsername(), "TEXT");
                     }
                 }
-                 mu.setFormData(id, formDefId, "DateModified", "","DATE");
-                 mu.setFormData(id, formDefId, "DateCreated", "","DATE");
+                mu.setFormData(appDef.getAppId(), appDef.getVersion().toString(), id, formDefId, "DateModified", "","DATE");
+                mu.setFormData(appDef.getAppId(), appDef.getVersion().toString(), id, formDefId, "DateCreated", "","DATE");
+                //mu.setFormData(id, formDefId, "DateModified", "","DATE");
+                //mu.setFormData(id, formDefId, "DateCreated", "","DATE");
                 // save to form
+
                 //appService.storeFormData(appDef.getAppId(), appDef.getVersion().toString(), formDefId, rowSet, id);
             }
 

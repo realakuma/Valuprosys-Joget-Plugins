@@ -213,32 +213,38 @@ public class MobileUtil {
         }
         return result;
     }
-     public boolean setFormData(String Id,String formDefId,String columnName,String columnValue,String valueType) {
-   
+
+    public boolean setFormData(String appId, String appVersion, String Id, String formDefId, String columnName, String columnValue, String valueType) {
+
         PreparedStatement preStat = null;
+        String result = "";
+        ResultSet rs = null;
 
         try {
             // retrieve connection from the default datasource
             DataSource ds = (DataSource) AppUtil.getApplicationContext().getBean("setupDataSource");
             conn = ds.getConnection();
             Date currentDate = new Date();
-            java.sql.Date sqlDate=new java.sql.Date(currentDate.getTime());
+            java.sql.Date sqlDate = new java.sql.Date(currentDate.getTime());
             // execute SQL query
             if (!conn.isClosed()) {
-                String sql = "update "+formDefId+" set columnName= ?  where id="+Id;
+                String fnd_form_table = "select tableName from app_form where 1=1 and appid='" + appId + "' and appversion='" + appVersion + "' and formId='" + formDefId + "'";
+                preStat = conn.prepareStatement(fnd_form_table);
+                rs = preStat.executeQuery();
+                while (rs.next()) {
+                    result = rs.getString(1);
+                }
+                String sql = "update " + result + " set " + columnName + "= ?  where id=" + Id;
 
                 preStat = conn.prepareStatement(sql);
-                if (valueType.equals("Date"))
-                {
-                   preStat.setDate(1,sqlDate);
-                }
-                else
-                {
+                if (valueType.equals("Date")) {
+                    preStat.setDate(1, sqlDate);
+                } else {
                     preStat.setString(1, columnValue);
                 }
                 preStat.executeQuery();
                 conn.commit();
-              
+
             }
 
             //PreparedStatement stmt = conn.prepareStatement("UPDATE formdata_simpleflow set c_status='#assignment.activityId#' WHERE processId='#assignment.processId#'"); 
