@@ -28,5 +28,6 @@ public class MobileConst {
     public static String subFormFeeDetailUrl="custom_jw/expense_subfrom.jsp?id=";
     public static String Andriod="Andriod";
     public static String IOS="IOS";
+    public static String column_prefix="c_";
     
 }

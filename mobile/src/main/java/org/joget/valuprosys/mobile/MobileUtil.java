@@ -27,6 +27,7 @@ import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
 import org.joget.apps.app.dao.EnvironmentVariableDao;
 import org.joget.apps.app.model.EnvironmentVariable;
+import org.joget.apps.form.dao.FormDataDaoImpl;
 
 /**
  *
@@ -234,15 +235,15 @@ public class MobileUtil {
                 while (rs.next()) {
                     result = rs.getString(1);
                 }
-                String sql = "update " + result + " set " + columnName + "= ?  where id=" + Id;
+                String sql = "update " + FormDataDaoImpl.FORM_PREFIX_TABLE_NAME+result + " set " + columnName + "= ?  where id='" + Id+"'";
 
                 preStat = conn.prepareStatement(sql);
-                if (valueType.equals("Date")) {
+                if (valueType.equals("DATE")) {
                     preStat.setDate(1, sqlDate);
                 } else {
                     preStat.setString(1, columnValue);
                 }
-                preStat.executeQuery();
+                preStat.execute();
                 conn.commit();
 
             }
